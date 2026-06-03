@@ -129,19 +129,5 @@ jobs:
         body: "Note about the ${{steps.envs.outputs.ml_version}}d version: these releases are built with double precision floating point numbers."
         draft: true
         artifacts: |
-#          MeshLab${{steps.envs.outputs.ml_version}}-linux_x86_64.tar.gz
-#          MeshLab${{steps.envs.outputs.ml_version_d}}-linux_x86_64.tar.gz
-#          meshlab_linux_appimage_x86_64/MeshLab${{steps.envs.outputs.ml_version}}-linux_x86_64.AppImage
-#          meshlab_linux_appimage_double_x86_64/MeshLab${{steps.envs.outputs.ml_version_d}}-linux_x86_64.AppImage
-#          MeshLab${{steps.envs.outputs.ml_version}}-linux_aarch64.tar.gz
-#          MeshLab${{steps.envs.outputs.ml_version_d}}-linux_aarch64.tar.gz
-#          meshlab_linux_appimage_aarch64/MeshLab${{steps.envs.outputs.ml_version}}-linux_aarch64.AppImage
-#          meshlab_linux_appimage_double_aarch64/MeshLab${{steps.envs.outputs.ml_version_d}}-linux_aarch64.AppImage
-#          meshlab_macos_dmg_x86_64/MeshLab${{steps.envs.outputs.ml_version}}-macos_x86_64.dmg
-#          meshlab_macos_dmg_double_x86_64/MeshLab${{steps.envs.outputs.ml_version_d}}-macos_x86_64.dmg
-#          meshlab_macos_dmg_arm64/MeshLab${{steps.envs.outputs.ml_version}}-macos_arm64.dmg
-#          meshlab_macos_dmg_double_arm64/MeshLab${{steps.envs.outputs.ml_version_d}}-macos_arm64.dmg
-#          MeshLab${{steps.envs.outputs.ml_version}}-windows_x86_64.zip
           MeshLab${{steps.envs.outputs.ml_version_d}}-windows_x86_64.zip
-#          meshlab_windows_installer_x86_64/MeshLab${{steps.envs.outputs.ml_version}}-windows_x86_64.exe
           meshlab_windows_installer_double_x86_64/MeshLab${{steps.envs.outputs.ml_version_d}}-windows_x86_64.exe
