@@ -10,7 +10,6 @@ Unicode true
 !define PRODUCT_WEB_SITE "https://www.meshlab.net"
 !define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\meshlab.exe"
 !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
-!define PRODUCT_UNINST_ROOT_KEY "HKLM"
 !define DISTRIB_FOLDER "DISTRIB_PATH"
 
 !define MAINDIR $PROGRAMFILES64
@@ -22,10 +21,10 @@ SetCompressor /SOLID /FINAL lzma
 !include MUI2.nsh
 !include LogicLib.nsh
 !include FileFunc.nsh
+!include x64.nsh
 ; Custom scripts
 !include FileAssociation.nsh
 !include ExecWaitJob.nsh
-
 
 ; MUI Settings
 !define MUI_ABORTWARNING
@@ -63,8 +62,17 @@ InstallDir "${MAINDIR}\VCG\MeshLab"
 ShowInstDetails show
 ShowUnInstDetails show
 
+SetRegView 64
+SetShellVarContext all
+
 Function .onInit
-  ReadRegStr $0 HKLM "${PRODUCT_UNINST_KEY}" "UninstallString"
+  ; Just install on 64-bit Windows.
+  ${IfNot} ${RunningX64}
+    MessageBox MB_OK|MB_ICONSTOP "This installer requires 64-bit Windows."
+    Abort
+  ${EndIf}
+
+  ReadRegStr $0 SHCTX "${PRODUCT_UNINST_KEY}" "UninstallString"
   ${If} $0 != "" ;2020.0x...
     ${IfNot} ${Silent}
       MessageBox MB_OK "Please first uninstall old MeshLab version. Starting uninstaller now..."
@@ -75,7 +83,7 @@ Function .onInit
     ${EndIf}
     !insertmacro ExecWaitJob r8
   ${Else}
-    ReadRegStr $0 HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\MeshLab_64b" "UninstallString"
+    ReadRegStr $0 SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\MeshLab_64b" "UninstallString"
     ${If} $0 != "" ;2016.12
       ${IfNot} ${Silent}
         MessageBox MB_OK "Please first uninstall old MeshLab version. Starting uninstaller now..."
@@ -101,9 +109,9 @@ Section "MainSection" SEC01
   RMDir /r "$SMPROGRAMS\MeshLab"
   Delete "$DESKTOP\MeshLab.lnk"
 
-  DeleteRegKey ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}"
-  DeleteRegKey HKLM "${PRODUCT_DIR_REGKEY}"
-  DeleteRegKey HKLM "${PRODUCT_DIR_REGKEY_S}"
+  DeleteRegKey SHCTX "${PRODUCT_UNINST_KEY}"
+  DeleteRegKey SHCTX "${PRODUCT_DIR_REGKEY}"
+  ;DeleteRegKey SHCTX "${PRODUCT_DIR_REGKEY_S}"
 
   Delete "$INSTDIR\*"
 
@@ -120,14 +128,14 @@ Section "MainSection" SEC01
   File /nonfatal /a /r "${DISTRIB_FOLDER}\"
 
   ;Association to extensions:
-  ${registerExtension} "$INSTDIR\meshlab.exe" ".obj" "OBJ File"
-  ${registerExtension} "$INSTDIR\meshlab.exe" ".ply" "PLY File"
-  ${registerExtension} "$INSTDIR\meshlab.exe" ".stl" "STL File"
-  ${registerExtension} "$INSTDIR\meshlab.exe" ".qobj" "QOBJ File"
-  ${registerExtension} "$INSTDIR\meshlab.exe" ".off" "OFF File"
-  ${registerExtension} "$INSTDIR\meshlab.exe" ".ptx" "PTX File"
-  ${registerExtension} "$INSTDIR\meshlab.exe" ".vmi" "VMI File"
-  ${registerExtension} "$INSTDIR\meshlab.exe" ".fbx" "FBX File"
+  ;${registerExtension} "$INSTDIR\meshlab.exe" ".obj" "OBJ File"
+  ;${registerExtension} "$INSTDIR\meshlab.exe" ".ply" "PLY File"
+  ;${registerExtension} "$INSTDIR\meshlab.exe" ".stl" "STL File"
+  ;${registerExtension} "$INSTDIR\meshlab.exe" ".qobj" "QOBJ File"
+  ;${registerExtension} "$INSTDIR\meshlab.exe" ".off" "OFF File"
+  ;${registerExtension} "$INSTDIR\meshlab.exe" ".ptx" "PTX File"
+  ;${registerExtension} "$INSTDIR\meshlab.exe" ".vmi" "VMI File"
+  ;${registerExtension} "$INSTDIR\meshlab.exe" ".fbx" "FBX File"
 
 SectionEnd
 
@@ -144,15 +152,15 @@ SectionEnd
 
 Section -Post
   WriteUninstaller "$INSTDIR\uninstall.exe"
-  WriteRegStr HKLM "${PRODUCT_DIR_REGKEY}" "" "$INSTDIR\meshlab.exe"
-  ;WriteRegStr HKLM "${PRODUCT_DIR_REGKEY_S}" "" "$INSTDIR\meshlabserver.exe"
-  WriteRegStr HKLM "${PRODUCT_UNINST_KEY}" "DisplayName" "$(^Name)"
-  WriteRegStr HKLM "${PRODUCT_UNINST_KEY}" "UninstallString" "$INSTDIR\uninstall.exe"
-  WriteRegStr HKLM "${PRODUCT_UNINST_KEY}" "QuietUninstallString" '"$INSTDIR\uninstall.exe" /S'
-  WriteRegStr HKLM "${PRODUCT_UNINST_KEY}" "DisplayIcon" "$INSTDIR\meshlab.exe"
-  WriteRegStr HKLM "${PRODUCT_UNINST_KEY}" "DisplayVersion" "${PRODUCT_VERSION}"
-  WriteRegStr HKLM "${PRODUCT_UNINST_KEY}" "URLInfoAbout" "${PRODUCT_WEB_SITE}"
-  WriteRegStr HKLM "${PRODUCT_UNINST_KEY}" "Publisher" "${PRODUCT_PUBLISHER}"
+  WriteRegStr SHCTX "${PRODUCT_DIR_REGKEY}" "" "$INSTDIR\meshlab.exe"
+  ;WriteRegStr SHCTX "${PRODUCT_DIR_REGKEY_S}" "" "$INSTDIR\meshlabserver.exe"
+  WriteRegStr SHCTX "${PRODUCT_UNINST_KEY}" "DisplayName" "$(^Name)"
+  WriteRegStr SHCTX "${PRODUCT_UNINST_KEY}" "UninstallString" "$INSTDIR\uninstall.exe"
+  WriteRegStr SHCTX "${PRODUCT_UNINST_KEY}" "QuietUninstallString" '"$INSTDIR\uninstall.exe" /S'
+  WriteRegStr SHCTX "${PRODUCT_UNINST_KEY}" "DisplayIcon" "$INSTDIR\meshlab.exe"
+  WriteRegStr SHCTX "${PRODUCT_UNINST_KEY}" "DisplayVersion" "${PRODUCT_VERSION}"
+  WriteRegStr SHCTX "${PRODUCT_UNINST_KEY}" "URLInfoAbout" "${PRODUCT_WEB_SITE}"
+  WriteRegStr SHCTX "${PRODUCT_UNINST_KEY}" "Publisher" "${PRODUCT_PUBLISHER}"
 SectionEnd
 
 Section -AdditionalIcons
@@ -184,19 +192,19 @@ Section Uninstall ;uninstall instructions
   RMDir /r "$SMPROGRAMS\MeshLab"
   Delete "$DESKTOP\MeshLab.lnk"
 
-  DeleteRegKey ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}"
-  DeleteRegKey HKLM "${PRODUCT_DIR_REGKEY}"
-  DeleteRegKey HKLM "${PRODUCT_DIR_REGKEY_S}"
+  DeleteRegKey SHCTX "${PRODUCT_UNINST_KEY}"
+  DeleteRegKey SHCTX "${PRODUCT_DIR_REGKEY}"
+  ;DeleteRegKey SHCTX "${PRODUCT_DIR_REGKEY_S}"
 
   ;Unregistering file association
-  ${unregisterExtension} ".obj" "OBJ File"
-  ${unregisterExtension} ".ply" "PLY File"
-  ${unregisterExtension} ".stl" "STL File"
-  ${unregisterExtension} ".qobj" "QOBJ File"
-  ${unregisterExtension} ".off" "OFF File"
-  ${unregisterExtension} ".ptx" "PTX File"
-  ${unregisterExtension} ".vmi" "VMI File"
-  ${unregisterExtension} ".fbx" "FBX File"
+  ;${unregisterExtension} ".obj" "OBJ File"
+  ;${unregisterExtension} ".ply" "PLY File"
+  ;${unregisterExtension} ".stl" "STL File"
+  ;${unregisterExtension} ".qobj" "QOBJ File"
+  ;${unregisterExtension} ".off" "OFF File"
+  ;${unregisterExtension} ".ptx" "PTX File"
+  ;${unregisterExtension} ".vmi" "VMI File"
+  ;${unregisterExtension} ".fbx" "FBX File"
 
   SetAutoClose true
 SectionEnd
