@@ -40,7 +40,7 @@ cp $RESOURCES_PATH/windows/FileAssociation.nsh $INSTALL_PATH/
 
 # Make Installer
 
-makensis.exe $INSTALL_PATH/meshlab_final.nsi
+"C:/Program Files (x86)/NSIS/makensis.exe" $INSTALL_PATH/meshlab_final.nsi
 
 rm $INSTALL_PATH/meshlab_final.nsi
 rm $INSTALL_PATH/ExecWaitJob.nsh
