@@ -2,7 +2,8 @@
 ; - MESHLAB_VERSION
 ; - DISTRIB_PATH
 
-!define MAINDIR $PROGRAMFILES64
+Unicode true
+
 !define PRODUCT_NAME "MeshLab"
 !define PRODUCT_VERSION "MESHLAB_VERSION"
 !define PRODUCT_PUBLISHER "Paolo Cignoni - VCG - ISTI - CNR"
@@ -12,8 +13,16 @@
 !define PRODUCT_UNINST_ROOT_KEY "HKLM"
 !define DISTRIB_FOLDER "DISTRIB_PATH"
 
-; MUI 1.67 compatible -----
-!include "MUI.nsh"
+!define MAINDIR $PROGRAMFILES64
+
+; Use MUI v2 -----
+!include MUI2.nsh
+!include LogicLib.nsh
+!include FileFunc.nsh
+; Custom scripts
+!include FileAssociation.nsh
+!include ExecWaitJob.nsh
+
 
 ; MUI Settings
 !define MUI_ABORTWARNING
@@ -50,10 +59,6 @@ OutFile "MeshLab${PRODUCT_VERSION}-windows.exe"
 InstallDir "${MAINDIR}\VCG\MeshLab"
 ShowInstDetails show
 ShowUnInstDetails show
-
-!include LogicLib.nsh
-!include ExecWaitJob.nsh
-!include FileAssociation.nsh
 
 Function .onInit
   ReadRegStr $0 HKLM "${PRODUCT_UNINST_KEY}" "UninstallString"
