@@ -102,121 +102,12 @@ jobs:
         sudo apt-get update
         sudo apt-get install libopengl0
 
-    #Download Linux Packages
-#    - name: Download Linux x86_64 ZIP
-#      uses: actions/download-artifact@v4
-#      with:
-#        name: MeshLab_Linux_portable_x86_64
-#        path: meshlab_linux_portable_x86_64
-#    - name: Download Linux x86_64 ZIP-d
-#      uses: actions/download-artifact@v4
-#      with:
-#        name: MeshLab_Linux_portable_double_x86_64
-#        path: meshlab_linux_portable_double_x86_64
-#    - name: Download Linux x86_64 AppImage
-#      uses: actions/download-artifact@v4
-#      with:
-#        name: MeshLab_Linux_packages_x86_64
-#        path: meshlab_linux_appimage_x86_64
-#    - name: Download Linux x86_64 AppImage-d
-#      uses: actions/download-artifact@v4
-#      with:
-#        name: MeshLab_Linux_packages_double_x86_64
-#        path: meshlab_linux_appimage_double_x86_64
-#    - name: Download Linux aarch64 ZIP
-#      uses: actions/download-artifact@v4
-#      with:
-#        name: MeshLab_Linux_portable_aarch64
-#        path: meshlab_linux_portable_aarch64
-#    - name: Download Linux aarch64 ZIP-d
-#      uses: actions/download-artifact@v4
-#      with:
-#        name: MeshLab_Linux_portable_double_aarch64
-#        path: meshlab_linux_portable_double_aarch64
-#    - name: Download Linux aarch64 AppImage
-#      uses: actions/download-artifact@v4
-#      with:
-#        name: MeshLab_Linux_packages_aarch64
-#        path: meshlab_linux_appimage_aarch64
-#    - name: Download Linux aarch64 AppImage-d
-#      uses: actions/download-artifact@v4
-#      with:
-#        name: MeshLab_Linux_packages_double_aarch64
-#        path: meshlab_linux_appimage_double_aarch64
-#    - name: Change Permissions
-#      run: |
-#        chmod +x meshlab_linux_portable_x86_64/usr/bin/meshlab
-#        chmod +x meshlab_linux_portable_x86_64/AppRun
-#        chmod +x meshlab_linux_portable_double_x86_64/usr/bin/meshlab
-#        chmod +x meshlab_linux_portable_double_x86_64/AppRun
-#        chmod +x meshlab_linux_portable_aarch64/usr/bin/meshlab
-#        chmod +x meshlab_linux_portable_aarch64/AppRun
-#        chmod +x meshlab_linux_portable_double_aarch64/usr/bin/meshlab
-#        chmod +x meshlab_linux_portable_double_aarch64/AppRun
-#    - name: Setup env variables
-#      id: envs
-#      shell: bash
-#      run: |
-#        #get version of meshlab
-#        IFS=' ' #space delimiter
-#        STR_VERSION=$(meshlab_linux_portable_x86_64/usr/bin/meshlab --version)
-#        read -a strarr <<< "$STR_VERSION"
-#        ML_VERSION=${strarr[1]} #get the meshlab version from the string
-#        echo "ml_version=$ML_VERSION" >> $GITHUB_OUTPUT
-#        STR_VERSION=$(meshlab_linux_portable_double_x86_64/usr/bin/meshlab --version)
-#        read -a strarrd <<< "$STR_VERSION"
-#        ML_VERSION_D=${strarrd[1]} #get the meshlab version from the string
-#        echo "ml_version_d=$ML_VERSION_D" >> $GITHUB_OUTPUT
-#    - name: Create MeshLab Portable Linux Archive
-#      run: |
-#        cd meshlab_linux_portable_x86_64
-#        tar -cvzf ../MeshLab${{steps.envs.outputs.ml_version}}-linux_x86_64.tar.gz *
-#        cd ../meshlab_linux_portable_double_x86_64
-#        tar -cvzf ../MeshLab${{steps.envs.outputs.ml_version_d}}-linux_x86_64.tar.gz *
-#        cd ../meshlab_linux_portable_aarch64
-#        tar -cvzf ../MeshLab${{steps.envs.outputs.ml_version}}-linux_aarch64.tar.gz *
-#        cd ../meshlab_linux_portable_double_aarch64
-#        tar -cvzf ../MeshLab${{steps.envs.outputs.ml_version_d}}-linux_aarch64.tar.gz *
-#        cd ..
-
-    #Download MacOS Packages
-#    - name: Download MacOS DMG x86_64
-#      uses: actions/download-artifact@v4
-#      with:
-#        name: MeshLab_macOS_packages_x86_64
-#        path: meshlab_macos_dmg_x86_64
-#    - name: Download MacOS DMG-d x86_64
-#      uses: actions/download-artifact@v4
-#      with:
-#        name: MeshLab_macOS_packages_double_x86_64
-#        path: meshlab_macos_dmg_double_x86_64
-#    - name: Download MacOS DMG arm64
-#      uses: actions/download-artifact@v4
-#      with:
-#        name: MeshLab_macOS_packages_arm64
-#        path: meshlab_macos_dmg_arm64
-#    - name: Download MacOS DMG-d arm64
-#      uses: actions/download-artifact@v4
-#      with:
-#        name: MeshLab_macOS_packages_double_arm64
-#        path: meshlab_macos_dmg_double_arm64
-
     #Download Windows Packages
-#    - name: Download Windows ZIP
-#      uses: actions/download-artifact@v4
-#      with:
-#        name: MeshLab_Windows_portable_x86_64
-#        path: meshlab_windows_portable_x86_64
     - name: Download Windows ZIP-d
       uses: actions/download-artifact@v4
       with:
         name: MeshLab_Windows_portable_double_x86_64
         path: meshlab_windows_portable_double_x86_64
-#    - name: Download Windows Installer
-#      uses: actions/download-artifact@v4
-#      with:
-#        name: MeshLab_Windows_packages_x86_64
-#        path: meshlab_windows_installer_x86_64
     - name: Download Windows Installer-d
       uses: actions/download-artifact@v4
       with:
@@ -224,8 +115,6 @@ jobs:
         path: meshlab_windows_installer_double_x86_64
     - name: Create MeshLab Portable Windows Archive
       run: |
-#        cd meshlab_windows_portable_x86_64
-#        zip -r -9 ../MeshLab${{steps.envs.outputs.ml_version}}-windows_x86_64.zip *
         cd ../meshlab_windows_portable_double_x86_64
         zip -r -9 ../MeshLab${{steps.envs.outputs.ml_version_d}}-windows_x86_64.zip *
         cd ..
