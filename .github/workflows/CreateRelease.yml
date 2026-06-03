@@ -34,8 +34,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: ['ubuntu-22.04', 'ubuntu-22.04-arm', 'macos-15-intel', 'macos-latest', 'windows-latest']
-        precision: [single_precision, double_precision]
+        os: ['windows-latest']
+        precision: [double_precision]
     steps:
     - uses: actions/checkout@v4
       with:
