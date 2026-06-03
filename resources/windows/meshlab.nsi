@@ -15,6 +15,9 @@ Unicode true
 
 !define MAINDIR $PROGRAMFILES64
 
+; Set compression to highest available 2026.
+SetCompressor /SOLID /FINAL lzma
+
 ; Use MUI v2 -----
 !include MUI2.nsh
 !include LogicLib.nsh
