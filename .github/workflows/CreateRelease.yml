@@ -202,21 +202,21 @@ jobs:
 #        path: meshlab_macos_dmg_double_arm64
 
     #Download Windows Packages
-    - name: Download Windows ZIP
-      uses: actions/download-artifact@v4
-      with:
-        name: MeshLab_Windows_portable_x86_64
-        path: meshlab_windows_portable_x86_64
+#    - name: Download Windows ZIP
+#      uses: actions/download-artifact@v4
+#      with:
+#        name: MeshLab_Windows_portable_x86_64
+#        path: meshlab_windows_portable_x86_64
     - name: Download Windows ZIP-d
       uses: actions/download-artifact@v4
       with:
         name: MeshLab_Windows_portable_double_x86_64
         path: meshlab_windows_portable_double_x86_64
-    - name: Download Windows Installer
-      uses: actions/download-artifact@v4
-      with:
-        name: MeshLab_Windows_packages_x86_64
-        path: meshlab_windows_installer_x86_64
+#    - name: Download Windows Installer
+#      uses: actions/download-artifact@v4
+#      with:
+#        name: MeshLab_Windows_packages_x86_64
+#        path: meshlab_windows_installer_x86_64
     - name: Download Windows Installer-d
       uses: actions/download-artifact@v4
       with:
@@ -224,10 +224,10 @@ jobs:
         path: meshlab_windows_installer_double_x86_64
     - name: Create MeshLab Portable Windows Archive
       run: |
-        cd meshlab_windows_portable_x86_64
-        zip -r ../MeshLab${{steps.envs.outputs.ml_version}}-windows_x86_64.zip *
+#        cd meshlab_windows_portable_x86_64
+#        zip -r -9 ../MeshLab${{steps.envs.outputs.ml_version}}-windows_x86_64.zip *
         cd ../meshlab_windows_portable_double_x86_64
-        zip -r ../MeshLab${{steps.envs.outputs.ml_version_d}}-windows_x86_64.zip *
+        zip -r -9 ../MeshLab${{steps.envs.outputs.ml_version_d}}-windows_x86_64.zip *
         cd ..
 
     #Create release and upload
@@ -252,7 +252,7 @@ jobs:
 #          meshlab_macos_dmg_double_x86_64/MeshLab${{steps.envs.outputs.ml_version_d}}-macos_x86_64.dmg
 #          meshlab_macos_dmg_arm64/MeshLab${{steps.envs.outputs.ml_version}}-macos_arm64.dmg
 #          meshlab_macos_dmg_double_arm64/MeshLab${{steps.envs.outputs.ml_version_d}}-macos_arm64.dmg
-          MeshLab${{steps.envs.outputs.ml_version}}-windows_x86_64.zip
+#          MeshLab${{steps.envs.outputs.ml_version}}-windows_x86_64.zip
           MeshLab${{steps.envs.outputs.ml_version_d}}-windows_x86_64.zip
-          meshlab_windows_installer_x86_64/MeshLab${{steps.envs.outputs.ml_version}}-windows_x86_64.exe
+#          meshlab_windows_installer_x86_64/MeshLab${{steps.envs.outputs.ml_version}}-windows_x86_64.exe
           meshlab_windows_installer_double_x86_64/MeshLab${{steps.envs.outputs.ml_version_d}}-windows_x86_64.exe
