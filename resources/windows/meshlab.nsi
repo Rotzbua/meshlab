@@ -3,6 +3,9 @@
 ; - DISTRIB_PATH
 
 Unicode true
+ManifestDPIAware true
+ManifestSupportedOS Win10
+;ManifestSupportedOS all
 
 !define PRODUCT_NAME "MeshLab"
 !define PRODUCT_VERSION "MESHLAB_VERSION"
@@ -19,7 +22,6 @@ OutFile "MeshLab${PRODUCT_VERSION}-windows.exe"
 InstallDir "${MAINDIR}\VCG\MeshLab"
 ShowInstDetails show
 ShowUnInstDetails show
-
 
 ; Set compression to highest available 2026.
 SetCompressor /SOLID /FINAL lzma
@@ -75,6 +77,9 @@ SetCompressor /SOLID /FINAL lzma
 
 ; Language files
 !insertmacro MUI_LANGUAGE "English"
+
+; Add macro for meta data installation size.
+!insertmacro GetSize
 
 ; MUI end ------
 !define /date NOW "%Y_%m_%d"
@@ -194,7 +199,7 @@ Section -Post
   WriteRegDWORD SHCTX "${PRODUCT_UNINST_KEY}" "NoRepair" 1
   WriteRegDWORD SHCTX "${PRODUCT_UNINST_KEY}" "NoModify" 1
   ; Calculate installation size (KB)
-  GetSize "$INSTDIR" "/S=0K" $0
+  ${GetSize} "$INSTDIR" "/S=0K" $0
   WriteRegDWORD SHCTX "${PRODUCT_UNINST_KEY}" "EstimatedSize" $0
 SectionEnd
 
