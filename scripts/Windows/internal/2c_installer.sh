@@ -35,8 +35,6 @@ cp $RESOURCES_PATH/windows/LICENSE.rtf $INSTALL_PATH/
 # Locate WiX Toolset (installed via choco install wixtoolset)
 WIX_BIN=""
 for WIX_DIR in \
-    "/c/Program Files (x86)/WiX Toolset v3.11" \
-    "/c/Program Files (x86)/WiX Toolset v3.14" \
     "/c/Program Files (x86)/WiX Toolset v3"* \
     "/c/Program Files/WiX Toolset v3"*; do
     if [ -d "$WIX_DIR/bin" ]; then
@@ -78,7 +76,7 @@ echo "Using WiX Toolset at: $WIX_BIN"
     "$INSTALL_PATH/meshlab_files.wixobj" \
     -out "$INSTALL_PATH/MeshLab${ML_VERSION}-windows.msi"
 
-# Cleanup temporary WiX build artefacts
+# Cleanup temporary WiX build artifacts
 rm -f "$INSTALL_PATH/meshlab_files.wxs" \
       "$INSTALL_PATH/meshlab.wixobj" \
       "$INSTALL_PATH/meshlab_files.wixobj" \
