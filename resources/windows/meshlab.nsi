@@ -14,23 +14,23 @@ Unicode true
 
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
 OutFile "MeshLab${PRODUCT_VERSION}-windows.exe"
-InstallDir "${MAINDIR}\VCG\MeshLab"
+InstallDir "${PROGRAMFILES64}\VCG\MeshLab"
 ShowInstDetails show
 ShowUnInstDetails show
 
-!define MAINDIR $PROGRAMFILES64
 
 ; Set compression to highest available 2026.
 SetCompressor /SOLID /FINAL lzma
 
 ; ---------- Multi-User Configuration ----------
 ; Must be defined before include.
-!define MULTIUSER_EXECUTIONLEVEL Highest
+;!define MULTIUSER_EXECUTIONLEVEL Highest
+!define MULTIUSER_EXECUTIONLEVEL User
 !define MULTIUSER_MUI
 !define MULTIUSER_INSTALLMODE_COMMANDLINE
 !define MULTIUSER_INSTALLMODE_INSTDIR "$(^Name)"
 !define MULTIUSER_INSTALLMODE_DEFAULT_CURRENTUSER ; Set default to a per-user installation, even if the rights for a per-machine installation are available.
-!define MULTIUSER_USE_PROGRAMFILES64 ;  Use $PROGRAMFILES64 instead of $PROGRAMFILES as the default all users directory.
+!define MULTIUSER_USE_PROGRAMFILES64 ; Use $PROGRAMFILES64 instead of $PROGRAMFILES as the default all users directory.
 !define MULTIUSER_INSTALLMODE_FUNCTION onMultiUserModeChanged
 
 !define MULTIUSER_INSTALLMODE_DEFAULT_REGISTRY_KEY ${PRODUCT_UNINST_KEY}
