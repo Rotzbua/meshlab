@@ -29,6 +29,13 @@ IFS=' ' #space delimiter
 STR_VERSION=$("$INSTALL_PATH/meshlab.exe" --version)
 read -a strarr <<< "$STR_VERSION"
 ML_VERSION=${strarr[1]} #get the meshlab version from the string
+ML_VERSION_NO_SUFFIX="${ML_VERSION%%[!0-9.]*}"
+IFS='.' read -r -a VERSION_PARTS <<< "$ML_VERSION_NO_SUFFIX"
+# WiX package version must be four numeric parts: major.minor.build.revision
+for IDX in 0 1 2 3; do
+    VERSION_PARTS[$IDX]="${VERSION_PARTS[$IDX]:-0}"
+done
+WIX_VERSION="${VERSION_PARTS[0]}.${VERSION_PARTS[1]}.${VERSION_PARTS[2]}.${VERSION_PARTS[3]}"
 
 # Generate the WiX license dialog document from the bundled text resources
 python3 - "$RESOURCES_PATH" "$INSTALL_PATH/LICENSE.rtf" <<'PY'
@@ -101,7 +108,7 @@ done
 MSI_PATH="$INSTALL_PATH/MeshLab${ML_VERSION}-windows.msi"
 wix build \
     "$RESOURCES_PATH/windows/meshlab.wxs" \
-    -d "Version=$ML_VERSION" \
+    -d "Version=$WIX_VERSION" \
     -d "SourceDir=$INSTALL_PATH" \
     -arch x64 \
     -ext WixToolset.UI.wixext \
