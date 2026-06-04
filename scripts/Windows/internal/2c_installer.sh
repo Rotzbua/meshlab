@@ -87,7 +87,7 @@ if ! command -v wix >/dev/null 2>&1; then
     exit 1
 fi
 
-echo "Using WiX CLI: $(wix --version)"
+echo "Using WiX CLI at: $(command -v wix)"
 
 # Ensure required WiX extensions are available
 WIX_EXT_VERSION="6.0.1"
