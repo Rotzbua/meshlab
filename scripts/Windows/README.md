@@ -26,4 +26,4 @@ Libraries installed by the `0_setup_env.sh` are the following:
 	- `ccache` (required by github actions)
 	- `cmake`
 	- `ninja`
-	- `nsis` (for package stage)
+	- `wixtoolset` (for package stage)

@@ -22,7 +22,7 @@ case $i in
 esac
 done
 
-choco install --no-progress cmake ninja ccache wget nsis
+choco install --no-progress cmake ninja ccache wget wixtoolset
 
 if [ "$DONT_INSTALL_QT" = false ] ; then
     echo "=== installing qt packages..."

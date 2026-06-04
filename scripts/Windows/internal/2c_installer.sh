@@ -23,47 +23,72 @@ case $i in
 esac
 done
 
-# Make nsis script
-
-#get version
+# Get MeshLab version from the installed binary
 IFS=' ' #space delimiter
 STR_VERSION=$($INSTALL_PATH/meshlab.exe --version)
 read -a strarr <<< "$STR_VERSION"
 ML_VERSION=${strarr[1]} #get the meshlab version from the string
 
-sed "s%MESHLAB_VERSION%$ML_VERSION%g" $RESOURCES_PATH/windows/meshlab.nsi > $RESOURCES_PATH/windows/meshlab_final.nsi
-sed -i "s%DISTRIB_PATH%.%g" $RESOURCES_PATH/windows/meshlab_final.nsi
+# Copy LICENSE.rtf required by the WiX UI into the install directory
+cp $RESOURCES_PATH/windows/LICENSE.rtf $INSTALL_PATH/
 
-mv $RESOURCES_PATH/windows/meshlab_final.nsi $INSTALL_PATH/
-cp $RESOURCES_PATH/windows/ExecWaitJob.nsh $INSTALL_PATH/
-cp $RESOURCES_PATH/windows/FileAssociation.nsh $INSTALL_PATH/
+# Locate WiX Toolset (installed via choco install wixtoolset)
+WIX_BIN=""
+for WIX_DIR in \
+    "/c/Program Files (x86)/WiX Toolset v3.11" \
+    "/c/Program Files (x86)/WiX Toolset v3.14" \
+    "/c/Program Files (x86)/WiX Toolset v3"* \
+    "/c/Program Files/WiX Toolset v3"*; do
+    if [ -d "$WIX_DIR/bin" ]; then
+        WIX_BIN="$WIX_DIR/bin"
+        break
+    fi
+done
 
-# Make Installer
+if [ -z "$WIX_BIN" ]; then
+    echo "ERROR: WiX Toolset not found. Install it with: choco install wixtoolset"
+    exit 1
+fi
 
-"C:/Program Files (x86)/NSIS/makensis.exe" $INSTALL_PATH/meshlab_final.nsi
+echo "Using WiX Toolset at: $WIX_BIN"
 
-rm $INSTALL_PATH/meshlab_final.nsi
-rm $INSTALL_PATH/ExecWaitJob.nsh
-rm $INSTALL_PATH/FileAssociation.nsh
+# Step 1 – Harvest all installed files into a component group
+"$WIX_BIN/heat.exe" dir "$INSTALL_PATH" \
+    -cg MeshLabFiles \
+    -dr INSTALLFOLDER \
+    -ke -gg -scom -sreg -sfrag -srd \
+    -var var.SourceDir \
+    -out "$INSTALL_PATH/meshlab_files.wxs"
 
-mkdir $PACKAGES_PATH
+# Step 2 – Compile WiX sources
+"$WIX_BIN/candle.exe" \
+    -dVersion="$ML_VERSION" \
+    -dSourceDir="$INSTALL_PATH" \
+    -arch x64 \
+    -ext WixUtilExtension \
+    "$RESOURCES_PATH/windows/meshlab.wxs" \
+    "$INSTALL_PATH/meshlab_files.wxs" \
+    -out "$INSTALL_PATH/"
 
-# get the name of the installer file, without the path
-INSTALLER_NAME=$(basename $INSTALL_PATH/MeshLab*-windows.exe)
+# Step 3 – Link and produce the MSI
+"$WIX_BIN/light.exe" \
+    -ext WixUIExtension \
+    -ext WixUtilExtension \
+    "$INSTALL_PATH/meshlab.wixobj" \
+    "$INSTALL_PATH/meshlab_files.wixobj" \
+    -out "$INSTALL_PATH/MeshLab${ML_VERSION}-windows.msi"
 
-# get the name of the installer without the extension
-INSTALLER_NAME=${INSTALLER_NAME%.*}
+# Cleanup temporary WiX build artefacts
+rm -f "$INSTALL_PATH/meshlab_files.wxs" \
+      "$INSTALL_PATH/meshlab.wixobj" \
+      "$INSTALL_PATH/meshlab_files.wixobj" \
+      "$INSTALL_PATH/LICENSE.rtf"
 
-# get running architecture
+mkdir -p $PACKAGES_PATH
+
+# Determine running architecture and build the final installer filename
 ARCH=$(uname -m)
+INSTALLER_NAME="MeshLab${ML_VERSION}-windows_${ARCH}.msi"
 
-# append the architecture and extension to the installer name
-INSTALLER_NAME=${INSTALLER_NAME}_$ARCH.exe
-
-# rename the installer and move it to the packages folder
-mv $INSTALL_PATH/MeshLab*-windows.exe $INSTALL_PATH/$INSTALLER_NAME
-mv $INSTALL_PATH/$INSTALLER_NAME $PACKAGES_PATH
-
-
-
-
+# Move the installer to the packages folder
+mv "$INSTALL_PATH/MeshLab${ML_VERSION}-windows.msi" "$PACKAGES_PATH/$INSTALLER_NAME"
