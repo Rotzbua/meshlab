@@ -22,7 +22,7 @@ case $i in
 esac
 done
 
-choco install --no-progress cmake ninja ccache wget dotnet-sdk
+choco install --no-progress cmake ninja ccache wget dotnet-sdk python
 
 # Install WiX CLI v7 via dotnet tool (do not use outdated choco wixtoolset package)
 if dotnet tool list --global | grep -q '^wix '; then
