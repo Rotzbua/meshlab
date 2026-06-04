@@ -29,8 +29,9 @@ IFS=' ' #space delimiter
 STR_VERSION=$("$INSTALL_PATH/meshlab.exe" --version)
 read -a strarr <<< "$STR_VERSION"
 ML_VERSION=${strarr[1]} #get the meshlab version from the string
-ML_VERSION_NO_SUFFIX="${ML_VERSION%d}"
+ML_VERSION_NO_SUFFIX="${ML_VERSION%%[!0-9.]*}"
 IFS='.' read -r -a VERSION_PARTS <<< "$ML_VERSION_NO_SUFFIX"
+# WiX package version must be four numeric parts: major.minor.build.revision
 for IDX in 0 1 2 3; do
     VERSION_PARTS[$IDX]="${VERSION_PARTS[$IDX]:-0}"
 done
