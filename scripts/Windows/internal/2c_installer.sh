@@ -120,7 +120,7 @@ rm -f "$INSTALL_PATH/meshlab_files.wxs" \
       "$INSTALL_PATH/MeshLab${ML_VERSION}-windows.wixpdb" \
       "$INSTALL_PATH/LICENSE.rtf"
 
-mkdir -p $PACKAGES_PATH
+mkdir -p "$PACKAGES_PATH"
 
 # Determine running architecture and build the final installer filename
 ARCH=$(uname -m)
