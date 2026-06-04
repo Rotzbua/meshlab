@@ -44,7 +44,7 @@ echo "Using WiX CLI: $(wix --version)"
 
 # Ensure required WiX extensions are available
 for WIX_EXT in WixToolset.UI.wixext WixToolset.Util.wixext WixToolset.Heat.wixext; do
-    if ! wix extension list | grep -q "$WIX_EXT"; then
+    if ! wix extension list | grep -qx "$WIX_EXT"; then
         wix extension add "$WIX_EXT"
     fi
 done
