@@ -90,9 +90,10 @@ fi
 echo "Using WiX CLI: $(wix --version)"
 
 # Ensure required WiX extensions are available
-for WIX_EXT in WixToolset.UI.wixext/6.0.2 WixToolset.Util.wixext/6.0.2; do
-    if ! wix extension list | grep -qx "${WIX_EXT%/*} ${WIX_EXT#*/}"; then
-        wix extension add "$WIX_EXT"
+WIX_EXT_VERSION="6.0.1"
+for WIX_EXT in WixToolset.UI.wixext WixToolset.Util.wixext; do
+    if ! wix extension list | awk 'NF>=2 && $1 != "Name" { print $1" "$2 }' | grep -qx "$WIX_EXT $WIX_EXT_VERSION"; then
+        wix extension add "$WIX_EXT" --version "$WIX_EXT_VERSION"
     fi
 done
 
