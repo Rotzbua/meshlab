@@ -97,6 +97,7 @@ done
 
 # Step 1 – Harvest all installed files into a component group
 wix harvest directory "$INSTALL_PATH" \
+    -ext WixToolset.Heat.wixext \
     -o "$INSTALL_PATH/meshlab_files.wxs" \
     -cg MeshLabFiles \
     -dr INSTALLFOLDER \
