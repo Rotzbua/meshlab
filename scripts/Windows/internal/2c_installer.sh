@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 SCRIPTS_PATH="$(dirname "$(realpath "$0")")"/..
 RESOURCES_PATH=$SCRIPTS_PATH/../../resources
@@ -82,42 +83,37 @@ PY
 export PATH="$PATH:$HOME/.dotnet/tools"
 
 if ! command -v wix >/dev/null 2>&1; then
-    echo "ERROR: wix CLI not found. Install it with: dotnet tool install --global wix --version 7.0.0"
+    echo "ERROR: wix CLI not found. Install it with: dotnet tool install --global wix --version 6.0.2"
     exit 1
 fi
 
 echo "Using WiX CLI: $(wix --version)"
 
 # Ensure required WiX extensions are available
-for WIX_EXT in WixToolset.UI.wixext WixToolset.Util.wixext WixToolset.Heat.wixext; do
-    if ! wix extension list | grep -qx "$WIX_EXT"; then
+for WIX_EXT in WixToolset.UI.wixext/6.0.2 WixToolset.Util.wixext/6.0.2; do
+    if ! wix extension list | grep -qx "${WIX_EXT%/*} ${WIX_EXT#*/}"; then
         wix extension add "$WIX_EXT"
     fi
 done
 
-# Step 1 – Harvest all installed files into a component group
-wix harvest directory "$INSTALL_PATH" \
-    -ext WixToolset.Heat.wixext \
-    -o "$INSTALL_PATH/meshlab_files.wxs" \
-    -cg MeshLabFiles \
-    -dr INSTALLFOLDER \
-    -scom -sreg -sfrag -srd \
-    --var var.SourceDir
-
-# Step 2 – Build the MSI
+# Step 1 – Build the MSI
+MSI_PATH="$INSTALL_PATH/MeshLab${ML_VERSION}-windows.msi"
 wix build \
     "$RESOURCES_PATH/windows/meshlab.wxs" \
-    "$INSTALL_PATH/meshlab_files.wxs" \
     -d "Version=$ML_VERSION" \
     -d "SourceDir=$INSTALL_PATH" \
     -arch x64 \
     -ext WixToolset.UI.wixext \
     -ext WixToolset.Util.wixext \
-    -o "$INSTALL_PATH/MeshLab${ML_VERSION}-windows.msi"
+    -o "$MSI_PATH"
+
+if [ ! -f "$MSI_PATH" ]; then
+    echo "ERROR: WiX build completed without creating expected installer: $MSI_PATH"
+    exit 1
+fi
 
 # Cleanup temporary WiX build artifacts
-rm -f "$INSTALL_PATH/meshlab_files.wxs" \
-      "$INSTALL_PATH/MeshLab${ML_VERSION}-windows.wixpdb" \
+rm -f "$INSTALL_PATH/MeshLab${ML_VERSION}-windows.wixpdb" \
       "$INSTALL_PATH/LICENSE.rtf"
 
 mkdir -p "$PACKAGES_PATH"
@@ -127,4 +123,4 @@ ARCH=$(uname -m)
 INSTALLER_NAME="MeshLab${ML_VERSION}-windows_${ARCH}.msi"
 
 # Move the installer to the packages folder
-mv "$INSTALL_PATH/MeshLab${ML_VERSION}-windows.msi" "$PACKAGES_PATH/$INSTALLER_NAME"
+mv "$MSI_PATH" "$PACKAGES_PATH/$INSTALLER_NAME"
