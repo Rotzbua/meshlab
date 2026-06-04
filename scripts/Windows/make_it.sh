@@ -2,7 +2,7 @@
 # This is a script shell for compiling and deploying MeshLab in a Windows environment.
 #
 # Requires MSVC and Qt environment which is set-up properly, and accessible
-# cmake and makensis binaries.
+# cmake and WiX Toolset binaries.
 #
 # Without given arguments, MeshLab will be built in the meshlab/build,
 # the folder meshlab/install will be a portable version of MeshLab and

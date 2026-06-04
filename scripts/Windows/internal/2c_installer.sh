@@ -23,47 +23,108 @@ case $i in
 esac
 done
 
-# Make nsis script
-
-#get version
+# Get MeshLab version from the installed binary
 IFS=' ' #space delimiter
-STR_VERSION=$($INSTALL_PATH/meshlab.exe --version)
+STR_VERSION=$("$INSTALL_PATH/meshlab.exe" --version)
 read -a strarr <<< "$STR_VERSION"
 ML_VERSION=${strarr[1]} #get the meshlab version from the string
 
-sed "s%MESHLAB_VERSION%$ML_VERSION%g" $RESOURCES_PATH/windows/meshlab.nsi > $RESOURCES_PATH/windows/meshlab_final.nsi
-sed -i "s%DISTRIB_PATH%.%g" $RESOURCES_PATH/windows/meshlab_final.nsi
+# Generate the WiX license dialog document from the bundled text resources
+python3 - "$RESOURCES_PATH" "$INSTALL_PATH/LICENSE.rtf" <<'PY'
+from pathlib import Path
+import sys
 
-mv $RESOURCES_PATH/windows/meshlab_final.nsi $INSTALL_PATH/
-cp $RESOURCES_PATH/windows/ExecWaitJob.nsh $INSTALL_PATH/
-cp $RESOURCES_PATH/windows/FileAssociation.nsh $INSTALL_PATH/
+resources_path = Path(sys.argv[1])
+output_path = Path(sys.argv[2])
 
-# Make Installer
+sections = [
+    resources_path / "LICENSE.txt",
+    resources_path / "privacy.txt",
+]
 
-"C:/Program Files (x86)/NSIS/makensis.exe" $INSTALL_PATH/meshlab_final.nsi
 
-rm $INSTALL_PATH/meshlab_final.nsi
-rm $INSTALL_PATH/ExecWaitJob.nsh
-rm $INSTALL_PATH/FileAssociation.nsh
+def escape_rtf(text: str) -> str:
+    chunks = []
+    for char in text.replace("\r\n", "\n").replace("\r", "\n"):
+        if char == "\\":
+            chunks.append(r"\\")
+        elif char == "{":
+            chunks.append(r"\{")
+        elif char == "}":
+            chunks.append(r"\}")
+        elif char == "\n":
+            chunks.append("\\par\n")
+        else:
+            codepoint = ord(char)
+            if 32 <= codepoint <= 126:
+                chunks.append(char)
+            else:
+                signed_codepoint = codepoint if codepoint < 32768 else codepoint - 65536
+                chunks.append(rf"\u{signed_codepoint}?")
+    return "".join(chunks)
 
-mkdir $PACKAGES_PATH
 
-# get the name of the installer file, without the path
-INSTALLER_NAME=$(basename $INSTALL_PATH/MeshLab*-windows.exe)
+body = "\\par\\par\n".join(
+    escape_rtf(section.read_text(encoding="utf-8").strip()) for section in sections
+)
 
-# get the name of the installer without the extension
-INSTALLER_NAME=${INSTALLER_NAME%.*}
+output_path.write_text(
+    "{\\rtf1\\ansi\\deff0\n"
+    "{\\fonttbl{\\f0\\fnil\\fcharset0 Arial;}}\n"
+    "\\viewkind4\\uc1\\pard\\f0\\fs18\n"
+    f"{body}\n"
+    "}\n",
+    encoding="utf-8",
+)
+PY
 
-# get running architecture
+# Ensure dotnet global tools are on PATH (wix CLI is installed there)
+export PATH="$PATH:$HOME/.dotnet/tools"
+
+if ! command -v wix >/dev/null 2>&1; then
+    echo "ERROR: wix CLI not found. Install it with: dotnet tool install --global wix --version 7.0.0"
+    exit 1
+fi
+
+echo "Using WiX CLI: $(wix --version)"
+
+# Ensure required WiX extensions are available
+for WIX_EXT in WixToolset.UI.wixext WixToolset.Util.wixext WixToolset.Heat.wixext; do
+    if ! wix extension list | grep -qx "$WIX_EXT"; then
+        wix extension add "$WIX_EXT"
+    fi
+done
+
+# Step 1 – Harvest all installed files into a component group
+wix harvest directory "$INSTALL_PATH" \
+    -ext WixToolset.Heat.wixext \
+    -o "$INSTALL_PATH/meshlab_files.wxs" \
+    -cg MeshLabFiles \
+    -dr INSTALLFOLDER \
+    -scom -sreg -sfrag -srd \
+    --var var.SourceDir
+
+# Step 2 – Build the MSI
+wix build \
+    "$RESOURCES_PATH/windows/meshlab.wxs" \
+    "$INSTALL_PATH/meshlab_files.wxs" \
+    -d "Version=$ML_VERSION" \
+    -d "SourceDir=$INSTALL_PATH" \
+    -arch x64 \
+    -ext WixToolset.UI.wixext \
+    -ext WixToolset.Util.wixext \
+    -o "$INSTALL_PATH/MeshLab${ML_VERSION}-windows.msi"
+
+# Cleanup temporary WiX build artifacts
+rm -f "$INSTALL_PATH/meshlab_files.wxs" \
+      "$INSTALL_PATH/MeshLab${ML_VERSION}-windows.wixpdb" \
+      "$INSTALL_PATH/LICENSE.rtf"
+
+mkdir -p "$PACKAGES_PATH"
+
+# Determine running architecture and build the final installer filename
 ARCH=$(uname -m)
+INSTALLER_NAME="MeshLab${ML_VERSION}-windows_${ARCH}.msi"
 
-# append the architecture and extension to the installer name
-INSTALLER_NAME=${INSTALLER_NAME}_$ARCH.exe
-
-# rename the installer and move it to the packages folder
-mv $INSTALL_PATH/MeshLab*-windows.exe $INSTALL_PATH/$INSTALLER_NAME
-mv $INSTALL_PATH/$INSTALLER_NAME $PACKAGES_PATH
-
-
-
-
+# Move the installer to the packages folder
+mv "$INSTALL_PATH/MeshLab${ML_VERSION}-windows.msi" "$PACKAGES_PATH/$INSTALLER_NAME"
