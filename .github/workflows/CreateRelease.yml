@@ -17,14 +17,14 @@ jobs:
     name: Update ML_VERSION
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
       with:
         submodules: true
     - name: Update MeshLab version
       run : |
         echo ${{ github.event.inputs.version }} | tr -d '\n'> ML_VERSION
     - name: commit ML_VERSION change
-      uses: stefanzweifel/git-auto-commit-action@v4
+      uses: stefanzweifel/git-auto-commit-action@v7
       with:
         commit_message: Set MeshLab version to ${{ github.event.inputs.version }}
 
@@ -37,7 +37,7 @@ jobs:
         os: ['windows-latest']
         precision: [double_precision]
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
       with:
         submodules: recursive
         ref: main
@@ -81,12 +81,12 @@ jobs:
         win-certificate: ${{ secrets.WIN_CERTIFICATE }}
         win-certificate-pssw: ${{ secrets.WIN_CERTIFICATE_PSSW }}
     - name: Upload MeshLab Portable
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: MeshLab_${{ runner.os }}_portable${{steps.envs.outputs.artifact_suffix}}
         path: install/
     - name: Upload MeshLab Packages
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: MeshLab_${{ runner.os }}_packages${{steps.envs.outputs.artifact_suffix}}
         path: packages/MeshLab*
@@ -104,12 +104,12 @@ jobs:
 
     #Download Windows Packages
     - name: Download Windows ZIP-d
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: MeshLab_Windows_portable_double_x86_64
         path: meshlab_windows_portable_double_x86_64
     - name: Download Windows Installer-d
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: MeshLab_Windows_packages_double_x86_64
         path: meshlab_windows_installer_double_x86_64
