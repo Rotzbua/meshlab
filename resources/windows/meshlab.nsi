@@ -17,8 +17,19 @@ Unicode true
 ; Set compression to highest available 2026.
 SetCompressor /SOLID /FINAL lzma
 
+; ---------- Multi-User Configuration ----------
+; Must be defined before include.
+!define MULTIUSER_EXECUTIONLEVEL Highest
+!define MULTIUSER_MUI
+!define MULTIUSER_INSTALLMODE_COMMANDLINE
+!define MULTIUSER_INSTALLMODE_DEFAULT_CURRENTUSER ; Set default to a per-user installation, even if the rights for a per-machine installation are available.
+!define MULTIUSER_USE_PROGRAMFILES64 ;  Use $PROGRAMFILES64 instead of $PROGRAMFILES as the default all users directory.
+!define MULTIUSER_INSTALLMODE_DEFAULT_REGISTRY_KEY "${REG_KEY}"
+!define MULTIUSER_INSTALLMODE_DEFAULT_REGISTRY_VALNAME "InstallMode"
+
 ; Use MUI v2 -----
 !include MUI2.nsh
+!include "MultiUser.nsh"
 !include LogicLib.nsh
 !include FileFunc.nsh
 !include x64.nsh
@@ -37,6 +48,8 @@ SetCompressor /SOLID /FINAL lzma
 !insertmacro MUI_PAGE_LICENSE "${DISTRIB_FOLDER}\LICENSE.txt"
 ; License page
 !insertmacro MUI_PAGE_LICENSE "${DISTRIB_FOLDER}\privacy.txt"
+; Per-user/-machine choice.
+!insertmacro MULTIUSER_PAGE_INSTALLMODE
 ; Directory page
 !insertmacro MUI_PAGE_DIRECTORY
 ; Instfiles page
@@ -62,8 +75,6 @@ InstallDir "${MAINDIR}\VCG\MeshLab"
 ShowInstDetails show
 ShowUnInstDetails show
 
-SetRegView 64
-SetShellVarContext all
 
 Function .onInit
   ; Just install on 64-bit Windows.
@@ -71,6 +82,10 @@ Function .onInit
     MessageBox MB_OK|MB_ICONSTOP "This installer requires 64-bit Windows."
     Abort
   ${EndIf}
+  ; Set to 64‑bit registry.
+  SetRegView 64
+
+  !insertmacro MULTIUSER_INIT
 
   ReadRegStr $0 SHCTX "${PRODUCT_UNINST_KEY}" "UninstallString"
   ${If} $0 != "" ;2020.0x...
@@ -98,6 +113,12 @@ Function .onInit
 FunctionEnd
 
 Section "MainSection" SEC01
+  ${If} $MultiUser.InstallMode == "AllUsers"
+    SetShellVarContext All
+  ${Else}
+    SetShellVarContext Current
+  ${EndIf}
+
   SetOutPath "$INSTDIR"
   ;Let's delete all the dangerous stuff from previous releases.
   ;Shortcuts for currentuser shell context
@@ -105,9 +126,9 @@ Section "MainSection" SEC01
   Delete "$DESKTOP\MeshLab.lnk"
 
   ;Shortcuts for allusers
-  SetShellVarContext all ;Set alluser context. Icons created later are in allusers
-  RMDir /r "$SMPROGRAMS\MeshLab"
-  Delete "$DESKTOP\MeshLab.lnk"
+  ;SetShellVarContext all ;Set alluser context. Icons created later are in allusers
+  ;RMDir /r "$SMPROGRAMS\MeshLab"
+  ;Delete "$DESKTOP\MeshLab.lnk"
 
   DeleteRegKey SHCTX "${PRODUCT_UNINST_KEY}"
   DeleteRegKey SHCTX "${PRODUCT_DIR_REGKEY}"
@@ -140,17 +161,28 @@ Section "MainSection" SEC01
 SectionEnd
 
 Section -Prerequisites
+  ${If} $MultiUser.InstallMode == "AllUsers"
+    SetShellVarContext All
+    ExecWait '"$INSTDIR\vc_redist.x64.exe" /q /norestart'
+  ${Else}
+    SetShellVarContext Current
+  ${EndIf}
     ;always install vc_redist
 	;ReadRegStr $1 HKLM "SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\x64" "Installed"
 	;${If} $1 <> 0
 	;	Goto endPrerequisites
 	;${Else}
-		ExecWait '"$INSTDIR\vc_redist.x64.exe" /q /norestart'
+	;	ExecWait '"$INSTDIR\vc_redist.x64.exe" /q /norestart'
 	;${EndIf}
 	;endPrerequisites:
 SectionEnd
 
 Section -Post
+  ${If} $MultiUser.InstallMode == "AllUsers"
+    SetShellVarContext All
+  ${Else}
+    SetShellVarContext Current
+  ${EndIf}
   WriteUninstaller "$INSTDIR\uninstall.exe"
   WriteRegStr SHCTX "${PRODUCT_DIR_REGKEY}" "" "$INSTDIR\meshlab.exe"
   ;WriteRegStr SHCTX "${PRODUCT_DIR_REGKEY_S}" "" "$INSTDIR\meshlabserver.exe"
@@ -164,14 +196,23 @@ Section -Post
 SectionEnd
 
 Section -AdditionalIcons
-  SetShellVarContext all
-  WriteIniStr "$INSTDIR\${PRODUCT_NAME}.url" "InternetShortcut" "URL" "${PRODUCT_WEB_SITE}"
-  CreateShortCut "$SMPROGRAMS\MeshLab\Website.lnk" "$INSTDIR\${PRODUCT_NAME}.url"
+  ${If} $MultiUser.InstallMode == "AllUsers"
+    SetShellVarContext All
+  ${Else}
+    SetShellVarContext Current
+  ${EndIf}
+  ;WriteIniStr "$INSTDIR\${PRODUCT_NAME}.url" "InternetShortcut" "URL" "${PRODUCT_WEB_SITE}"
+  ;CreateShortCut "$SMPROGRAMS\MeshLab\Website.lnk" "$INSTDIR\${PRODUCT_NAME}.url"
   CreateShortCut "$SMPROGRAMS\MeshLab\Uninstall.lnk" "$INSTDIR\uninstall.exe"
 SectionEnd
 
 
 Function un.onInit ;before uninstall starts
+  ; Set to 64‑bit registry.
+  SetRegView 64
+
+  !insertmacro MULTIUSER_UNINIT
+
   ${If} ${Silent}
     Return
   ${Else}
@@ -181,6 +222,11 @@ Function un.onInit ;before uninstall starts
 FunctionEnd
 
 Section Uninstall ;uninstall instructions
+  ${If} $MultiUser.InstallMode == "AllUsers"
+    SetShellVarContext All
+  ${Else}
+    SetShellVarContext Current
+  ${EndIf}
   RMDir /r "$INSTDIR"
 
   ;Remove shortcuts in currentuser profile
@@ -188,9 +234,9 @@ Section Uninstall ;uninstall instructions
   Delete "$DESKTOP\MeshLab.lnk"
 
   ;Remove shortcuts in allusers profile
-  SetShellVarContext all
-  RMDir /r "$SMPROGRAMS\MeshLab"
-  Delete "$DESKTOP\MeshLab.lnk"
+  ;SetShellVarContext all
+  ;RMDir /r "$SMPROGRAMS\MeshLab"
+  ;Delete "$DESKTOP\MeshLab.lnk"
 
   DeleteRegKey SHCTX "${PRODUCT_UNINST_KEY}"
   DeleteRegKey SHCTX "${PRODUCT_DIR_REGKEY}"
