@@ -27,4 +27,5 @@ Libraries installed by the `0_setup_env.sh` are the following:
 	- `cmake`
 	- `ninja`
 	- `dotnet-sdk` (required to install and run WiX CLI)
+	- `python` (required by the packaging scripts to generate the WiX license RTF)
 	- `wix` dotnet global tool version `7.0.0` (for package stage)
