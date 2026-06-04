@@ -26,4 +26,5 @@ Libraries installed by the `0_setup_env.sh` are the following:
 	- `ccache` (required by github actions)
 	- `cmake`
 	- `ninja`
-	- `wixtoolset` (for package stage)
+	- `dotnet-sdk` (required to install and run WiX CLI)
+	- `wix` dotnet global tool version `7.0.0` (for package stage)

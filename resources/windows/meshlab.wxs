@@ -1,87 +1,78 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  WiX v3 installer for MeshLab.
+  WiX v7 installer for MeshLab.
 
-  Required candle variables:
-    -dVersion=<MeshLab version, e.g. 2222.11>
-    -dSourceDir=<path to the deployed MeshLab directory>
+  Required wix build variables:
+    -d Version=<MeshLab version, e.g. 2222.11>
+    -d SourceDir=<path to the deployed MeshLab directory>
 
   Build:
-    heat.exe dir <SourceDir> -cg MeshLabFiles -dr INSTALLFOLDER -ke -gg -scom -sreg -sfrag -srd -var var.SourceDir -out meshlab_files.wxs
-    candle.exe -dVersion=<ver> -dSourceDir=<dir> -arch x64 meshlab.wxs meshlab_files.wxs -out <outdir>\
-    light.exe -ext WixUIExtension -ext WixUtilExtension meshlab.wixobj meshlab_files.wixobj -out MeshLab<ver>-windows.msi
+    wix harvest directory <SourceDir> -o meshlab_files.wxs -cg MeshLabFiles -dr INSTALLFOLDER -scom -sreg -sfrag -srd --var var.SourceDir
+    wix build meshlab.wxs meshlab_files.wxs -d "Version=<ver>" -d "SourceDir=<dir>" -arch x64 -ext WixToolset.UI.wixext -ext WixToolset.Util.wixext -o MeshLab<ver>-windows.msi
 -->
-<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
-     xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
 
-  <Product Id="*"
-           Name="MeshLab $(var.Version)"
+  <Package Name="MeshLab $(var.Version)"
            Language="1033"
            Version="$(var.Version)"
            Manufacturer="Paolo Cignoni - VCG - ISTI - CNR"
-           UpgradeCode="F170F615-6173-440E-9D24-E76C00996727">
+           UpgradeCode="F170F615-6173-440E-9D24-E76C00996727"
+           InstallerVersion="500"
+           Scope="perMachine"
+           Compressed="yes">
 
-    <Package InstallerVersion="500"
-             Compressed="yes"
-             InstallScope="perMachine"
-             Platform="x64"
-             Description="MeshLab $(var.Version) Installer"
-             Manufacturer="Paolo Cignoni - VCG - ISTI - CNR" />
+    <SummaryInformation Description="MeshLab $(var.Version) Installer"
+                        Manufacturer="Paolo Cignoni - VCG - ISTI - CNR" />
 
-    <!-- Upgrade: remove older versions automatically; block downgrades. -->
     <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
 
     <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
 
-    <!-- UI: install-directory selection dialog (no feature selection, no repair). -->
-    <UIRef Id="WixUI_InstallDir" />
-    <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER" />
+    <Icon Id="MeshLabIcon" SourceFile="$(var.SourceDir)\meshlab.exe" />
+    <Property Id="ARPPRODUCTICON" Value="MeshLabIcon" />
+    <Property Id="ARPHELPLINK" Value="https://www.meshlab.net" />
+    <Property Id="ARPURLINFOABOUT" Value="https://www.meshlab.net" />
+    <Property Id="ARPNOREPAIR" Value="yes" />
+    <Property Id="ARPNOMODIFY" Value="yes" />
+
+    <ui:WixUI Id="WixUI_InstallDir" InstallDirectory="INSTALLFOLDER" />
     <WixVariable Id="WixUILicenseRtf" Value="$(var.SourceDir)\LICENSE.rtf" />
 
-    <!-- ===== Directory layout ===== -->
-    <Directory Id="TARGETDIR" Name="SourceDir">
-      <Directory Id="ProgramFiles64Folder">
-        <Directory Id="VCGDir" Name="VCG">
-          <Directory Id="INSTALLFOLDER" Name="MeshLab" />
-        </Directory>
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="VCGDir" Name="VCG">
+        <Directory Id="INSTALLFOLDER" Name="MeshLab" />
       </Directory>
-      <Directory Id="ProgramMenuFolder">
-        <Directory Id="MeshLabMenuDir" Name="MeshLab" />
+    </StandardDirectory>
+
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Directory Id="MeshLabMenuDir" Name="MeshLab">
+        <Component Id="StartMenuShortcut" Guid="045D8910-1AE5-4146-A883-C74760676D9B">
+          <Shortcut Id="StartMenuSC"
+                    Name="MeshLab"
+                    Target="[INSTALLFOLDER]meshlab.exe"
+                    WorkingDirectory="INSTALLFOLDER"
+                    Icon="MeshLabIcon"
+                    IconIndex="0" />
+          <RemoveFolder Id="MeshLabMenuDirRemove" On="uninstall" />
+          <RegistryValue Root="HKCU"
+                         Key="Software\VCG\MeshLab"
+                         Name="StartMenuInstalled"
+                         Type="integer"
+                         Value="1"
+                         KeyPath="yes" />
+        </Component>
       </Directory>
-      <Directory Id="DesktopFolder" Name="Desktop" />
-    </Directory>
+    </StandardDirectory>
 
-    <!-- ===== Start Menu shortcut ===== -->
-    <DirectoryRef Id="INSTALLFOLDER">
-      <Component Id="StartMenuShortcut" Guid="045D8910-1AE5-4146-A883-C74760676D9B">
-        <Shortcut Id="StartMenuSC"
-                  Directory="MeshLabMenuDir"
-                  Name="MeshLab"
-                  Target="[INSTALLFOLDER]meshlab.exe"
-                  WorkingDirectory="INSTALLFOLDER"
-                  Icon="MeshLabIcon"
-                  IconIndex="0" />
-        <RemoveFolder Id="MeshLabMenuDirRemove" Directory="MeshLabMenuDir" On="uninstall" />
-        <RegistryValue Root="HKCU"
-                       Key="Software\VCG\MeshLab"
-                       Name="StartMenuInstalled"
-                       Type="integer"
-                       Value="1"
-                       KeyPath="yes" />
-      </Component>
-    </DirectoryRef>
-
-    <!-- ===== Desktop shortcut ===== -->
-    <DirectoryRef Id="INSTALLFOLDER">
+    <StandardDirectory Id="DesktopFolder">
       <Component Id="DesktopShortcut" Guid="E8C440AE-685C-46C2-B86F-B817D62921C4">
         <Shortcut Id="DesktopSC"
-                  Directory="DesktopFolder"
                   Name="MeshLab"
                   Target="[INSTALLFOLDER]meshlab.exe"
                   WorkingDirectory="INSTALLFOLDER"
                   Icon="MeshLabIcon"
                   IconIndex="0" />
-        <RemoveFolder Id="DesktopRemove" Directory="DesktopFolder" On="uninstall" />
         <RegistryValue Root="HKCU"
                        Key="Software\VCG\MeshLab"
                        Name="DesktopInstalled"
@@ -89,9 +80,8 @@
                        Value="1"
                        KeyPath="yes" />
       </Component>
-    </DirectoryRef>
+    </StandardDirectory>
 
-    <!-- ===== App Paths registry key ===== -->
     <DirectoryRef Id="INSTALLFOLDER">
       <Component Id="AppPathsRegistry" Guid="46A25D1C-327B-4504-81DB-D6BB86C70D6B">
         <RegistryKey Root="HKLM"
@@ -104,28 +94,22 @@
       </Component>
     </DirectoryRef>
 
-    <!-- ===== Visual C++ Redistributable ===== -->
-    <!--
-      Pass the command line to the deferred custom action via a property setter.
-      WixQuietExec64 (from WixUtilExtension) executes the value of the property
-      whose name matches the custom action Id at the time the deferred action runs.
-    -->
-    <CustomAction Id="SetRunVcRedist"
-                  Property="RunVcRedist"
-                  Value='"[INSTALLFOLDER]vc_redist.x64.exe" /q /norestart' />
     <CustomAction Id="RunVcRedist"
-                  BinaryKey="WixCA"
+                  BinaryRef="Wix4UtilCA_X86"
                   DllEntry="WixQuietExec64"
                   Execute="deferred"
                   Return="ignore"
                   Impersonate="no" />
 
+    <SetProperty Id="RunVcRedist"
+                 Value="&quot;[INSTALLFOLDER]vc_redist.x64.exe&quot; /q /norestart"
+                 Before="RunVcRedist"
+                 Sequence="execute" />
+
     <InstallExecuteSequence>
-      <Custom Action="SetRunVcRedist" Before="RunVcRedist">NOT Installed</Custom>
-      <Custom Action="RunVcRedist" After="InstallFiles">NOT Installed</Custom>
+      <Custom Action="RunVcRedist" After="InstallFiles" Condition="NOT Installed" />
     </InstallExecuteSequence>
 
-    <!-- ===== Features ===== -->
     <Feature Id="ProductFeature" Title="MeshLab" Level="1">
       <ComponentGroupRef Id="MeshLabFiles" />
       <ComponentRef Id="StartMenuShortcut" />
@@ -133,13 +117,5 @@
       <ComponentRef Id="AppPathsRegistry" />
     </Feature>
 
-    <!-- ===== Add/Remove Programs metadata ===== -->
-    <Icon Id="MeshLabIcon" SourceFile="$(var.SourceDir)\meshlab.exe" />
-    <Property Id="ARPPRODUCTICON" Value="MeshLabIcon" />
-    <Property Id="ARPHELPLINK" Value="https://www.meshlab.net" />
-    <Property Id="ARPURLINFOABOUT" Value="https://www.meshlab.net" />
-    <Property Id="ARPNOREPAIR" Value="1" />
-    <Property Id="ARPNOMODIFY" Value="1" />
-
-  </Product>
+  </Package>
 </Wix>

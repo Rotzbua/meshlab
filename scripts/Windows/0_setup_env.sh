@@ -22,7 +22,14 @@ case $i in
 esac
 done
 
-choco install --no-progress cmake ninja ccache wget wixtoolset
+choco install --no-progress cmake ninja ccache wget dotnet-sdk
+
+# Install WiX CLI v7 via dotnet tool (do not use outdated choco wixtoolset package)
+if dotnet tool list --global | grep -q '^wix '; then
+    dotnet tool update --global wix --version 7.0.0
+else
+    dotnet tool install --global wix --version 7.0.0
+fi
 
 if [ "$DONT_INSTALL_QT" = false ] ; then
     echo "=== installing qt packages..."

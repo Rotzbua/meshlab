@@ -32,54 +32,45 @@ ML_VERSION=${strarr[1]} #get the meshlab version from the string
 # Copy LICENSE.rtf required by the WiX UI into the install directory
 cp $RESOURCES_PATH/windows/LICENSE.rtf $INSTALL_PATH/
 
-# Locate WiX Toolset (installed via choco install wixtoolset)
-WIX_BIN=""
-for WIX_DIR in \
-    "/c/Program Files (x86)/WiX Toolset v3"* \
-    "/c/Program Files/WiX Toolset v3"*; do
-    if [ -d "$WIX_DIR/bin" ]; then
-        WIX_BIN="$WIX_DIR/bin"
-        break
-    fi
-done
+# Ensure dotnet global tools are on PATH (wix CLI is installed there)
+export PATH="$PATH:$HOME/.dotnet/tools"
 
-if [ -z "$WIX_BIN" ]; then
-    echo "ERROR: WiX Toolset not found. Install it with: choco install wixtoolset"
+if ! command -v wix >/dev/null 2>&1; then
+    echo "ERROR: wix CLI not found. Install it with: dotnet tool install --global wix --version 7.0.0"
     exit 1
 fi
 
-echo "Using WiX Toolset at: $WIX_BIN"
+echo "Using WiX CLI: $(wix --version)"
+
+# Ensure required WiX extensions are available
+for WIX_EXT in WixToolset.UI.wixext WixToolset.Util.wixext WixToolset.Heat.wixext; do
+    if ! wix extension list | grep -q "$WIX_EXT"; then
+        wix extension add "$WIX_EXT"
+    fi
+done
 
 # Step 1 – Harvest all installed files into a component group
-"$WIX_BIN/heat.exe" dir "$INSTALL_PATH" \
+wix harvest directory "$INSTALL_PATH" \
+    -o "$INSTALL_PATH/meshlab_files.wxs" \
     -cg MeshLabFiles \
     -dr INSTALLFOLDER \
-    -ke -gg -scom -sreg -sfrag -srd \
-    -var var.SourceDir \
-    -out "$INSTALL_PATH/meshlab_files.wxs"
+    -scom -sreg -sfrag -srd \
+    --var var.SourceDir
 
-# Step 2 – Compile WiX sources
-"$WIX_BIN/candle.exe" \
-    -dVersion="$ML_VERSION" \
-    -dSourceDir="$INSTALL_PATH" \
-    -arch x64 \
-    -ext WixUtilExtension \
+# Step 2 – Build the MSI
+wix build \
     "$RESOURCES_PATH/windows/meshlab.wxs" \
     "$INSTALL_PATH/meshlab_files.wxs" \
-    -out "$INSTALL_PATH/"
-
-# Step 3 – Link and produce the MSI
-"$WIX_BIN/light.exe" \
-    -ext WixUIExtension \
-    -ext WixUtilExtension \
-    "$INSTALL_PATH/meshlab.wixobj" \
-    "$INSTALL_PATH/meshlab_files.wixobj" \
-    -out "$INSTALL_PATH/MeshLab${ML_VERSION}-windows.msi"
+    -d "Version=$ML_VERSION" \
+    -d "SourceDir=$INSTALL_PATH" \
+    -arch x64 \
+    -ext WixToolset.UI.wixext \
+    -ext WixToolset.Util.wixext \
+    -o "$INSTALL_PATH/MeshLab${ML_VERSION}-windows.msi"
 
 # Cleanup temporary WiX build artifacts
 rm -f "$INSTALL_PATH/meshlab_files.wxs" \
-      "$INSTALL_PATH/meshlab.wixobj" \
-      "$INSTALL_PATH/meshlab_files.wixobj" \
+      "$INSTALL_PATH/MeshLab${ML_VERSION}-windows.wixpdb" \
       "$INSTALL_PATH/LICENSE.rtf"
 
 mkdir -p $PACKAGES_PATH
