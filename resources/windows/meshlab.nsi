@@ -93,11 +93,23 @@ FunctionEnd
 Function .onInit
   ; Just install on 64-bit Windows.
   ${IfNot} ${RunningX64}
-    MessageBox MB_OK|MB_ICONSTOP "This installer requires 64-bit Windows."
-    Abort
+    MessageBox  MB_ICONEXCLAMATION|MB_YESNO  "This installer requires 64-bit Windows.$\n$\nContinue anyway?" IDYES allowInstall IDNO exitInstaller
+    allowInstall:
+      Return
+    exitInstaller:
+      Quit
   ${EndIf}
   ; Set to 64‑bit registry.
   SetRegView 64
+
+  ; Require at least Windows 10.
+  ${IfNot} ${AtLeastWin10}
+    MessageBox MB_ICONEXCLAMATION|MB_YESNO "This installer requires Windows 10 or newer.$\n$\nContinue anyway?" IDYES allowInstall IDNO exitInstaller
+    allowInstall:
+      Return
+    exitInstaller:
+      Quit
+  ${EndIf}
 
   ; Macro sets correct SetShellVarContext.
   !insertmacro MULTIUSER_INIT
@@ -199,7 +211,7 @@ Section -Post
   WriteRegDWORD SHCTX "${PRODUCT_UNINST_KEY}" "NoRepair" 1
   WriteRegDWORD SHCTX "${PRODUCT_UNINST_KEY}" "NoModify" 1
   ; Calculate installation size (KB)
-  ${GetSize} "$INSTDIR" "/S=0K" $0
+  ${GetSize} "$INSTDIR" "/S=0K" $0 $1 $2
   WriteRegDWORD SHCTX "${PRODUCT_UNINST_KEY}" "EstimatedSize" $0
 SectionEnd
 
