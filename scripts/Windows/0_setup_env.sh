@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 # this is a script shell sets up a Windows environment where
 # MeshLab can be compiled, deployed and packaged.
 #
@@ -24,11 +25,12 @@ done
 
 choco install --no-progress cmake ninja ccache wget dotnet-sdk python
 
-# Install WiX CLI v7 via dotnet tool (do not use outdated choco wixtoolset package)
+# Install WiX CLI v6 because it remains compatible with the current MSI
+# packaging flow while avoiding the WiX CLI v7 CI packaging issues.
 if dotnet tool list --global | grep -q '^wix '; then
-    dotnet tool update --global wix --version 7.0.0
+    dotnet tool update --global wix --version 6.0.2
 else
-    dotnet tool install --global wix --version 7.0.0
+    dotnet tool install --global wix --version 6.0.2
 fi
 
 if [ "$DONT_INSTALL_QT" = false ] ; then
