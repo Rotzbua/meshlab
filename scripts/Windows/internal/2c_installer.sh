@@ -93,7 +93,7 @@ echo "Using WiX CLI at: $(command -v wix)"
 WIX_EXT_VERSION="6.0.1"
 for WIX_EXT in WixToolset.UI.wixext WixToolset.Util.wixext; do
     if ! wix extension list | awk 'NF>=2 && $1 != "Name" { print $1" "$2 }' | grep -qx "$WIX_EXT $WIX_EXT_VERSION"; then
-        wix extension add "$WIX_EXT" --version "$WIX_EXT_VERSION"
+        wix extension add "$WIX_EXT/$WIX_EXT_VERSION"
     fi
 done
 
