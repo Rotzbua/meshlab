@@ -12,9 +12,11 @@ Unicode true
 !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
 !define DISTRIB_FOLDER "DISTRIB_PATH"
 
+!define MAINDIR $PROGRAMFILES64
+
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
 OutFile "MeshLab${PRODUCT_VERSION}-windows.exe"
-InstallDir "${PROGRAMFILES64}\VCG\MeshLab"
+InstallDir "${MAINDIR}\VCG\MeshLab"
 ShowInstDetails show
 ShowUnInstDetails show
 
@@ -24,8 +26,7 @@ SetCompressor /SOLID /FINAL lzma
 
 ; ---------- Multi-User Configuration ----------
 ; Must be defined before include.
-;!define MULTIUSER_EXECUTIONLEVEL Highest
-!define MULTIUSER_EXECUTIONLEVEL User
+!define MULTIUSER_EXECUTIONLEVEL Highest
 !define MULTIUSER_MUI
 !define MULTIUSER_INSTALLMODE_COMMANDLINE
 !define MULTIUSER_INSTALLMODE_INSTDIR "$(^Name)"
