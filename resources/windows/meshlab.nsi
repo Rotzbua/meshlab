@@ -12,6 +12,12 @@ Unicode true
 !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
 !define DISTRIB_FOLDER "DISTRIB_PATH"
 
+Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
+OutFile "MeshLab${PRODUCT_VERSION}-windows.exe"
+InstallDir "${MAINDIR}\VCG\MeshLab"
+ShowInstDetails show
+ShowUnInstDetails show
+
 !define MAINDIR $PROGRAMFILES64
 
 ; Set compression to highest available 2026.
@@ -22,10 +28,13 @@ SetCompressor /SOLID /FINAL lzma
 !define MULTIUSER_EXECUTIONLEVEL Highest
 !define MULTIUSER_MUI
 !define MULTIUSER_INSTALLMODE_COMMANDLINE
+!define MULTIUSER_INSTALLMODE_INSTDIR "$(^Name)"
 !define MULTIUSER_INSTALLMODE_DEFAULT_CURRENTUSER ; Set default to a per-user installation, even if the rights for a per-machine installation are available.
 !define MULTIUSER_USE_PROGRAMFILES64 ;  Use $PROGRAMFILES64 instead of $PROGRAMFILES as the default all users directory.
-!define MULTIUSER_INSTALLMODE_DEFAULT_REGISTRY_KEY "${REG_KEY}"
-!define MULTIUSER_INSTALLMODE_DEFAULT_REGISTRY_VALNAME "InstallMode"
+!define MULTIUSER_INSTALLMODE_FUNCTION onMultiUserModeChanged
+
+!define MULTIUSER_INSTALLMODE_DEFAULT_REGISTRY_KEY ${PRODUCT_UNINST_KEY}
+!define MULTIUSER_INSTALLMODE_DEFAULT_REGISTRY_VALUENAME "CurrentUser"
 
 ; Use MUI v2 -----
 !include MUI2.nsh
@@ -69,12 +78,11 @@ SetCompressor /SOLID /FINAL lzma
 ; MUI end ------
 !define /date NOW "%Y_%m_%d"
 
-Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
-OutFile "MeshLab${PRODUCT_VERSION}-windows.exe"
-InstallDir "${MAINDIR}\VCG\MeshLab"
-ShowInstDetails show
-ShowUnInstDetails show
-
+Function onMultiUserModeChanged
+${If} $MultiUser.InstallMode == "CurrentUser"
+    StrCpy $InstDir "$LocalAppdata\Programs\${MULTIUSER_INSTALLMODE_INSTDIR}"
+${EndIf}
+FunctionEnd
 
 Function .onInit
   ; Just install on 64-bit Windows.
@@ -173,6 +181,8 @@ Section -Post
   WriteUninstaller "$INSTDIR\uninstall.exe"
   WriteRegStr SHCTX "${PRODUCT_DIR_REGKEY}" "" "$INSTDIR\meshlab.exe"
   ;WriteRegStr SHCTX "${PRODUCT_DIR_REGKEY_S}" "" "$INSTDIR\meshlabserver.exe"
+
+  ; Metadata for Windows "Installed Apps".
   WriteRegStr SHCTX "${PRODUCT_UNINST_KEY}" "DisplayName" "$(^Name)"
   WriteRegStr SHCTX "${PRODUCT_UNINST_KEY}" "UninstallString" "$INSTDIR\uninstall.exe"
   WriteRegStr SHCTX "${PRODUCT_UNINST_KEY}" "QuietUninstallString" '"$INSTDIR\uninstall.exe" /S'
@@ -180,8 +190,11 @@ Section -Post
   WriteRegStr SHCTX "${PRODUCT_UNINST_KEY}" "DisplayVersion" "${PRODUCT_VERSION}"
   WriteRegStr SHCTX "${PRODUCT_UNINST_KEY}" "URLInfoAbout" "${PRODUCT_WEB_SITE}"
   WriteRegStr SHCTX "${PRODUCT_UNINST_KEY}" "Publisher" "${PRODUCT_PUBLISHER}"
-  WriteRegStr SHCTX "${PRODUCT_UNINST_KEY}" "NoRepair" 1
-  WriteRegStr SHCTX "${PRODUCT_UNINST_KEY}" "NoModify" 1
+  WriteRegDWORD SHCTX "${PRODUCT_UNINST_KEY}" "NoRepair" 1
+  WriteRegDWORD SHCTX "${PRODUCT_UNINST_KEY}" "NoModify" 1
+  ; Calculate installation size (KB)
+  GetSize "$INSTDIR" "/S=0K" $0
+  WriteRegDWORD SHCTX "${PRODUCT_UNINST_KEY}" "EstimatedSize" $0
 SectionEnd
 
 Section -AdditionalIcons
