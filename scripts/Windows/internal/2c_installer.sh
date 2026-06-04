@@ -29,8 +29,54 @@ STR_VERSION=$($INSTALL_PATH/meshlab.exe --version)
 read -a strarr <<< "$STR_VERSION"
 ML_VERSION=${strarr[1]} #get the meshlab version from the string
 
-# Copy LICENSE.rtf required by the WiX UI into the install directory
-cp $RESOURCES_PATH/windows/LICENSE.rtf $INSTALL_PATH/
+# Generate the WiX license dialog document from the bundled text resources
+python3 - "$RESOURCES_PATH" "$INSTALL_PATH/LICENSE.rtf" <<'PY'
+from pathlib import Path
+import sys
+
+resources_path = Path(sys.argv[1])
+output_path = Path(sys.argv[2])
+
+sections = [
+    resources_path / "LICENSE.txt",
+    resources_path / "privacy.txt",
+]
+
+
+def escape_rtf(text: str) -> str:
+    chunks = []
+    for char in text.replace("\r\n", "\n").replace("\r", "\n"):
+        if char == "\\":
+            chunks.append(r"\\")
+        elif char == "{":
+            chunks.append(r"\{")
+        elif char == "}":
+            chunks.append(r"\}")
+        elif char == "\n":
+            chunks.append("\\par\n")
+        else:
+            codepoint = ord(char)
+            if 32 <= codepoint <= 126:
+                chunks.append(char)
+            else:
+                signed_codepoint = codepoint if codepoint < 32768 else codepoint - 65536
+                chunks.append(rf"\u{signed_codepoint}?")
+    return "".join(chunks)
+
+
+body = "\\par\\par\n".join(
+    escape_rtf(section.read_text(encoding="utf-8").strip()) for section in sections
+)
+
+output_path.write_text(
+    "{\\rtf1\\ansi\\deff0\n"
+    "{\\fonttbl{\\f0\\fnil\\fcharset0 Arial;}}\n"
+    "\\viewkind4\\uc1\\pard\\f0\\fs18\n"
+    f"{body}\n"
+    "}\n",
+    encoding="utf-8",
+)
+PY
 
 # Ensure dotnet global tools are on PATH (wix CLI is installed there)
 export PATH="$PATH:$HOME/.dotnet/tools"
