@@ -85,6 +85,7 @@ Function .onInit
   ; Set to 64‑bit registry.
   SetRegView 64
 
+  ; Macro sets correct SetShellVarContext.
   !insertmacro MULTIUSER_INIT
 
   ReadRegStr $0 SHCTX "${PRODUCT_UNINST_KEY}" "UninstallString"
@@ -113,12 +114,6 @@ Function .onInit
 FunctionEnd
 
 Section "MainSection" SEC01
-  ${If} $MultiUser.InstallMode == "AllUsers"
-    SetShellVarContext All
-  ${Else}
-    SetShellVarContext Current
-  ${EndIf}
-
   SetOutPath "$INSTDIR"
   ;Let's delete all the dangerous stuff from previous releases.
   ;Shortcuts for currentuser shell context
@@ -162,10 +157,7 @@ SectionEnd
 
 Section -Prerequisites
   ${If} $MultiUser.InstallMode == "AllUsers"
-    SetShellVarContext All
     ExecWait '"$INSTDIR\vc_redist.x64.exe" /q /norestart'
-  ${Else}
-    SetShellVarContext Current
   ${EndIf}
     ;always install vc_redist
 	;ReadRegStr $1 HKLM "SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\x64" "Installed"
@@ -178,11 +170,6 @@ Section -Prerequisites
 SectionEnd
 
 Section -Post
-  ${If} $MultiUser.InstallMode == "AllUsers"
-    SetShellVarContext All
-  ${Else}
-    SetShellVarContext Current
-  ${EndIf}
   WriteUninstaller "$INSTDIR\uninstall.exe"
   WriteRegStr SHCTX "${PRODUCT_DIR_REGKEY}" "" "$INSTDIR\meshlab.exe"
   ;WriteRegStr SHCTX "${PRODUCT_DIR_REGKEY_S}" "" "$INSTDIR\meshlabserver.exe"
@@ -193,14 +180,11 @@ Section -Post
   WriteRegStr SHCTX "${PRODUCT_UNINST_KEY}" "DisplayVersion" "${PRODUCT_VERSION}"
   WriteRegStr SHCTX "${PRODUCT_UNINST_KEY}" "URLInfoAbout" "${PRODUCT_WEB_SITE}"
   WriteRegStr SHCTX "${PRODUCT_UNINST_KEY}" "Publisher" "${PRODUCT_PUBLISHER}"
+  WriteRegStr SHCTX "${PRODUCT_UNINST_KEY}" "NoRepair" 1
+  WriteRegStr SHCTX "${PRODUCT_UNINST_KEY}" "NoModify" 1
 SectionEnd
 
 Section -AdditionalIcons
-  ${If} $MultiUser.InstallMode == "AllUsers"
-    SetShellVarContext All
-  ${Else}
-    SetShellVarContext Current
-  ${EndIf}
   ;WriteIniStr "$INSTDIR\${PRODUCT_NAME}.url" "InternetShortcut" "URL" "${PRODUCT_WEB_SITE}"
   ;CreateShortCut "$SMPROGRAMS\MeshLab\Website.lnk" "$INSTDIR\${PRODUCT_NAME}.url"
   CreateShortCut "$SMPROGRAMS\MeshLab\Uninstall.lnk" "$INSTDIR\uninstall.exe"
@@ -222,11 +206,6 @@ Function un.onInit ;before uninstall starts
 FunctionEnd
 
 Section Uninstall ;uninstall instructions
-  ${If} $MultiUser.InstallMode == "AllUsers"
-    SetShellVarContext All
-  ${Else}
-    SetShellVarContext Current
-  ${EndIf}
   RMDir /r "$INSTDIR"
 
   ;Remove shortcuts in currentuser profile
