@@ -95,7 +95,7 @@
     </DirectoryRef>
 
     <CustomAction Id="RunVcRedist"
-                  BinaryRef="Wix4UtilCA_X86"
+                  BinaryRef="Wix4UtilCA_X64"
                   DllEntry="WixQuietExec64"
                   Execute="deferred"
                   Return="ignore"
