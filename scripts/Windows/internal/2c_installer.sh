@@ -76,12 +76,12 @@ done
 # Ensure dotnet global tools are on PATH (wix CLI is installed there)
 export PATH="$PATH:$HOME/.dotnet/tools"
 
-# Add required WiX extensions
-wix extension add WixToolset.UI.wixext
-wix extension add WixToolset.Util.wixext
 # Accept the EULA
 # https://docs.firegiant.com/wix/osmf/#available-eula-ids
 wix eula accept wix7
+# Add required WiX extensions
+wix extension add WixToolset.UI.wixext
+wix extension add WixToolset.Util.wixext
 
 # Step 1 – Build the MSI
 MSI_PATH="$INSTALL_PATH/MeshLab${ML_VERSION}-windows.msi"
