@@ -29,7 +29,7 @@ done
 #STR_VERSION=$($INSTALL_PATH/meshlab.exe --version)
 #read -a strarr <<< "$STR_VERSION"
 #ML_VERSION=${strarr[1]} #get the meshlab version from the string
-ML_VERSION="2222.4.1"
+ML_VERSION="2222.4.1.0"
 
 # Generate the WiX license dialog document from the bundled text resources
 #python3 - "$RESOURCES_PATH" "$INSTALL_PATH/LICENSE.rtf" <<'PY'

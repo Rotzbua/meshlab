@@ -7,15 +7,17 @@
     SourceDir=<path to the deployed MeshLab directory>
 -->
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
-     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui"
+     xmlns:util="http://wixtoolset.org/schemas/v4/wxs/util"
+     >
 
   <Package Name="MeshLab $(var.Version)"
-           Language="1033"
            Version="$(var.Version)"
            Manufacturer="Paolo Cignoni - VCG - ISTI - CNR"
+           Language="1033"
            UpgradeCode="F170F615-6173-440E-9D24-E76C00996727"
            InstallerVersion="500"
-           Scope="perMachine"
+           Scope="perMachineOrUser"
            Compressed="yes">
 
     <SummaryInformation Description="MeshLab $(var.Version) Installer"
@@ -34,6 +36,8 @@
 
     <ui:WixUI Id="WixUI_InstallDir" InstallDirectory="INSTALLFOLDER" />
 <!--     <WixVariable Id="WixUILicenseRtf" Value="$(var.SourceDir)\LICENSE.rtf" /> -->
+<!--     <util:QueryNativeMachine /> -->
+<!--     <Launch Condition="WIX_NATIVE_MACHINE = 34404" Message="Must run only on an x64 machine!" /> -->
 
     <StandardDirectory Id="ProgramFiles64Folder">
       <Directory Id="VCGDir" Name="VCG">
@@ -49,9 +53,11 @@
                     Target="[INSTALLFOLDER]meshlab.exe"
                     WorkingDirectory="INSTALLFOLDER"
                     Icon="MeshLabIcon"
-                    IconIndex="0" />
+                    IconIndex="0"
+                    Advertise="yes"
+                    />
           <RemoveFolder Id="MeshLabMenuDirRemove" On="uninstall" />
-          <RegistryValue Root="HKCU"
+          <RegistryValue Root="HKMU"
                          Key="Software\VCG\MeshLab"
                          Name="StartMenuInstalled"
                          Type="integer"
@@ -69,7 +75,7 @@
                   WorkingDirectory="INSTALLFOLDER"
                   Icon="MeshLabIcon"
                   IconIndex="0" />
-        <RegistryValue Root="HKCU"
+        <RegistryValue Root="HKMU"
                        Key="Software\VCG\MeshLab"
                        Name="DesktopInstalled"
                        Type="integer"
@@ -85,26 +91,26 @@
           <RegistryValue Type="string"
                          Value="[INSTALLFOLDER]meshlab.exe"
                          KeyPath="yes" />
-          <RegistryValue Name="Path" Type="string" Value="[INSTALLFOLDER]" />
+          <RegistryValue Name="Path"
+                         Type="string"
+                         Value="[INSTALLFOLDER]" />
         </RegistryKey>
       </Component>
     </DirectoryRef>
 
-    <CustomAction Id="RunVcRedist"
-                  BinaryRef="Wix4UtilCA_X64"
-                  DllEntry="WixQuietExec64"
-                  Execute="deferred"
-                  Return="ignore"
-                  Impersonate="no" />
-
-    <SetProperty Id="RunVcRedist"
-                 Value="&quot;[INSTALLFOLDER]vc_redist.x64.exe&quot; /q /norestart"
-                 Before="RunVcRedist"
-                 Sequence="execute" />
-
-    <InstallExecuteSequence>
-      <Custom Action="RunVcRedist" After="InstallFiles" Condition="NOT Installed" />
-    </InstallExecuteSequence>
+<!--     <CustomAction Id="RunVcRedist" -->
+<!--                   BinaryRef="Wix4UtilCA_X64" -->
+<!--                   DllEntry="WixQuietExec64" -->
+<!--                   Execute="deferred" -->
+<!--                   Return="ignore" -->
+<!--                   Impersonate="no" /> -->
+<!--     <SetProperty Id="RunVcRedist" -->
+<!--                  Value="&quot;[INSTALLFOLDER]vc_redist.x64.exe&quot; /q /norestart" -->
+<!--                  Before="RunVcRedist" -->
+<!--                  Sequence="execute" /> -->
+<!--     <InstallExecuteSequence> -->
+<!--       <Custom Action="RunVcRedist" After="InstallFiles" Condition="NOT Installed" /> -->
+<!--     </InstallExecuteSequence> -->
 
     <Feature Id="ProductFeature" Title="MeshLab" Level="1">
       <ComponentGroupRef Id="MeshLabFiles" />
