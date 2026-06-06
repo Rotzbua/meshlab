@@ -24,6 +24,12 @@ case $i in
 esac
 done
 
+# fixme
+IFS=' ' #space delimiter
+STR_VERSION=$($INSTALL_PATH/meshlab.exe --version)
+read -a strarr <<< "$STR_VERSION"
+ML_VERSION=${strarr[1]} #get the meshlab version from the string
+
 # Generate the WiX license dialog document from the bundled text resources
 #python3 - "$RESOURCES_PATH" "$INSTALL_PATH/LICENSE.rtf" <<'PY'
 #from pathlib import Path

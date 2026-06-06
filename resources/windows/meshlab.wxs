@@ -30,6 +30,7 @@
     <Property Id="ARPHELPLINK" Value="https://www.meshlab.net" />
     <Property Id="ARPURLINFOABOUT" Value="https://www.meshlab.net" />
     <Property Id="ARPNOREPAIR" Value="yes" />
+    <Property Id="ARPNOMODIFY" Value="yes" />
 
     <ui:WixUI Id="WixUI_InstallDir" InstallDirectory="INSTALLFOLDER" />
 <!--     <WixVariable Id="WixUILicenseRtf" Value="$(var.SourceDir)\LICENSE.rtf" /> -->
