@@ -24,91 +24,70 @@ case $i in
 esac
 done
 
-# Get MeshLab version from the installed binary
-IFS=' ' #space delimiter
-STR_VERSION=$("$INSTALL_PATH/meshlab.exe" --version)
-read -a strarr <<< "$STR_VERSION"
-ML_VERSION=${strarr[1]} #get the meshlab version from the string
-ML_VERSION_NO_SUFFIX="${ML_VERSION%%[!0-9.]*}"
-IFS='.' read -r -a VERSION_PARTS <<< "$ML_VERSION_NO_SUFFIX"
-# WiX package version must be four numeric parts: major.minor.build.revision
-for IDX in 0 1 2 3; do
-    VERSION_PARTS[$IDX]="${VERSION_PARTS[$IDX]:-0}"
-done
-WIX_VERSION="${VERSION_PARTS[0]}.${VERSION_PARTS[1]}.${VERSION_PARTS[2]}.${VERSION_PARTS[3]}"
-
 # Generate the WiX license dialog document from the bundled text resources
-python3 - "$RESOURCES_PATH" "$INSTALL_PATH/LICENSE.rtf" <<'PY'
-from pathlib import Path
-import sys
-
-resources_path = Path(sys.argv[1])
-output_path = Path(sys.argv[2])
-
-sections = [
-    resources_path / "LICENSE.txt",
-    resources_path / "privacy.txt",
-]
-
-
-def escape_rtf(text: str) -> str:
-    chunks = []
-    for char in text.replace("\r\n", "\n").replace("\r", "\n"):
-        if char == "\\":
-            chunks.append(r"\\")
-        elif char == "{":
-            chunks.append(r"\{")
-        elif char == "}":
-            chunks.append(r"\}")
-        elif char == "\n":
-            chunks.append("\\par\n")
-        else:
-            codepoint = ord(char)
-            if 32 <= codepoint <= 126:
-                chunks.append(char)
-            else:
-                signed_codepoint = codepoint if codepoint < 32768 else codepoint - 65536
-                chunks.append(rf"\u{signed_codepoint}?")
-    return "".join(chunks)
-
-
-body = "\\par\\par\n".join(
-    escape_rtf(section.read_text(encoding="utf-8").strip()) for section in sections
-)
-
-output_path.write_text(
-    "{\\rtf1\\ansi\\deff0\n"
-    "{\\fonttbl{\\f0\\fnil\\fcharset0 Arial;}}\n"
-    "\\viewkind4\\uc1\\pard\\f0\\fs18\n"
-    f"{body}\n"
-    "}\n",
-    encoding="utf-8",
-)
-PY
+#python3 - "$RESOURCES_PATH" "$INSTALL_PATH/LICENSE.rtf" <<'PY'
+#from pathlib import Path
+#import sys
+#
+#resources_path = Path(sys.argv[1])
+#output_path = Path(sys.argv[2])
+#
+#sections = [
+#    resources_path / "LICENSE.txt",
+#    resources_path / "privacy.txt",
+#]
+#
+#
+#def escape_rtf(text: str) -> str:
+#    chunks = []
+#    for char in text.replace("\r\n", "\n").replace("\r", "\n"):
+#        if char == "\\":
+#            chunks.append(r"\\")
+#        elif char == "{":
+#            chunks.append(r"\{")
+#        elif char == "}":
+#            chunks.append(r"\}")
+#        elif char == "\n":
+#            chunks.append("\\par\n")
+#        else:
+#            codepoint = ord(char)
+#            if 32 <= codepoint <= 126:
+#                chunks.append(char)
+#            else:
+#                signed_codepoint = codepoint if codepoint < 32768 else codepoint - 65536
+#                chunks.append(rf"\u{signed_codepoint}?")
+#    return "".join(chunks)
+#
+#
+#body = "\\par\\par\n".join(
+#    escape_rtf(section.read_text(encoding="utf-8").strip()) for section in sections
+#)
+#
+#output_path.write_text(
+#    "{\\rtf1\\ansi\\deff0\n"
+#    "{\\fonttbl{\\f0\\fnil\\fcharset0 Arial;}}\n"
+#    "\\viewkind4\\uc1\\pard\\f0\\fs18\n"
+#    f"{body}\n"
+#    "}\n",
+#    encoding="utf-8",
+#)
+#PY
 
 # Ensure dotnet global tools are on PATH (wix CLI is installed there)
 export PATH="$PATH:$HOME/.dotnet/tools"
 
-if ! command -v wix >/dev/null 2>&1; then
-    echo "ERROR: wix CLI not found. Install it with: dotnet tool install --global wix --version 6.0.2"
-    exit 1
-fi
-
-echo "Using WiX CLI at: $(command -v wix)"
-
-# Ensure required WiX extensions are available
-WIX_EXT_VERSION="6.0.1"
-for WIX_EXT in WixToolset.UI.wixext WixToolset.Util.wixext; do
-    if ! wix extension list | awk 'NF>=2 && $1 != "Name" { print $1" "$2 }' | grep -qx "$WIX_EXT $WIX_EXT_VERSION"; then
-        wix extension add "$WIX_EXT/$WIX_EXT_VERSION"
-    fi
-done
+# Add required WiX extensions
+wix extension add WixToolset.UI.wixext
+wix extension add WixToolset.Util.wixext
+# Accept the EULA
+# https://docs.firegiant.com/wix/osmf/#available-eula-ids
+wix eula accept wix7
 
 # Step 1 – Build the MSI
 MSI_PATH="$INSTALL_PATH/MeshLab${ML_VERSION}-windows.msi"
 wix build \
     "$RESOURCES_PATH/windows/meshlab.wxs" \
-    -d "Version=$WIX_VERSION" \
+    -d "Version=$ML_VERSION" \
     -d "SourceDir=$INSTALL_PATH" \
     -arch x64 \
     -ext WixToolset.UI.wixext \

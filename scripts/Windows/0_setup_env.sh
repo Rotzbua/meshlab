@@ -28,9 +28,9 @@ choco install --no-progress cmake ninja ccache wget dotnet-sdk python
 # Install WiX CLI v6 because it remains compatible with the current MSI
 # packaging flow while avoiding the WiX CLI v7 CI packaging issues.
 if dotnet tool list --global | grep -q '^wix '; then
-    dotnet tool update --global wix --version 6.0.2
+    dotnet tool update --global wix --version 7.0.0
 else
-    dotnet tool install --global wix --version 6.0.2
+    dotnet tool install --global wix --version 7.0.0
 fi
 
 if [ "$DONT_INSTALL_QT" = false ] ; then
