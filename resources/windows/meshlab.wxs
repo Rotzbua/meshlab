@@ -34,13 +34,15 @@
     <Property Id="ARPNOREPAIR" Value="yes" />
 <!--     <Property Id="ARPNOMODIFY" Value="yes" /> -->
 
-    <ui:WixUI Id="WixUI_InstallDir" InstallDirectory="INSTALLFOLDER" />
+    <ui:WixUI Id="WixUI_Advanced" InstallDirectory="INSTALLFOLDER" />
 <!--     <WixVariable Id="WixUILicenseRtf" Value="$(var.SourceDir)\LICENSE.rtf" /> -->
 <!--     <util:QueryNativeMachine /> -->
 <!--     <Launch Condition="WIX_NATIVE_MACHINE = 34404" Message="Must run only on an x64 machine!" /> -->
+    <Property Id="ApplicationFolderName" Value="MeshLab" />
 
     <StandardDirectory Id="ProgramFiles64Folder">
       <Directory Id="VCGDir" Name="VCG">
+        <Directory Id="APPLICATIONFOLDER" Name="MeshLab" />
         <Directory Id="INSTALLFOLDER" Name="MeshLab" />
       </Directory>
     </StandardDirectory>
