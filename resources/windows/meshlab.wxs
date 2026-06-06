@@ -39,6 +39,7 @@
 <!--     <util:QueryNativeMachine /> -->
 <!--     <Launch Condition="WIX_NATIVE_MACHINE = 34404" Message="Must run only on an x64 machine!" /> -->
     <Property Id="ApplicationFolderName" Value="MeshLab" />
+    <Property Id="WixAppFolder" Value="WixPerMachineFolder" />
 
     <StandardDirectory Id="ProgramFiles64Folder">
       <Directory Id="VCGDir" Name="VCG">
